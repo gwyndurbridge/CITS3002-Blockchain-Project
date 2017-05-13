@@ -1,20 +1,20 @@
-import hashlib, sys, time
+import hashlib, sys, time, random
+random.seed()
 
 text = 'example'
 
-
-difficulty = 1
+difficulty = 20
 
 
 def test(text, difficulty): 
-    nonce = 0
+    nonce = random.randint(0,9999999999999)
     loop = True
     best = 0
     timer = time.time()
 
 
     while loop:
-        nonce += 1
+        nonce = random.randint(0,9999999999999)
 
         val = (text + str(nonce)).encode('utf-8')
 
@@ -22,17 +22,25 @@ def test(text, difficulty):
         h.update(val)
         h = h.digest()
 
+
+        bits = ''
+
+        for i in h:
+            bits += bin(i)[2:].zfill(8)
+
         for i in range(0,difficulty + 1):
-            if h[i] == 0:
-                if i > best:
-                    best = i
+            if int(bits[i]) == 0:
+                if int(i) > best:
+                    best = int(i)
                 sys.stdout.write('Best: %d  \r' % best)
                 sys.stdout.flush()
 
-                if i == difficulty:                    
+                if int(i) == difficulty:
                     loop = False
+
             else:
                 break
+
 
     print(time.time() - timer)
     print('successful nonce: ', nonce)
