@@ -21,6 +21,7 @@ def generateBlockHeader(difficulty, transactions):
     blockHeader = {'prevBlockHash':getLastBlockHash(), 'timeStamp':time.time(), 'difficultyTarget':difficulty, 'nonce':None, 'merkleRoot':merkleRoot(transactions)}
     return  blockHeader
 
+#should return dict of transactions with has as key
 def generateBlockBody(transactions):
     return transactions
 
@@ -114,6 +115,10 @@ def checkNonce(header):
         return True
     #return False if not valid
     return False
+
+#add block to blockchain
+def addToBlockchain(header, body):
+    return True
 
 
 

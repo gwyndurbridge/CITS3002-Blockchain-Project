@@ -26,9 +26,10 @@ Complete:
 
 Incomplete:
 - (returning dummy value) getMinerKey() : str minerKey
-- (probably not needed. Just added for completeness) generateBlockBody(json[] transactions) : json[] transactions
+- generateBlockBody(json[] transactions) : dict{hash:transaction]
 - (just concatenating them rn) merkleRoot(json[] transactions) : str root
 - (returning dummy value) getLastBlockHash() : str lastBlockHash
+- addToBlockchain(dict header, dict body)
 
 To use:
 - cb = createCoinbaseTransaction([transactions])
