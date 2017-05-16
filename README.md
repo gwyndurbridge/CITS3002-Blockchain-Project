@@ -31,7 +31,7 @@ Incomplete:
 - (returning dummy value) getLastBlockHash() : str lastBlockHash
 
 To use:
-    - cb = createCoinbaseTransaction([transactions])
-    - hd = generateBlockHeader([transactions, cb])
-    - generateNonce(hd)
+- cb = createCoinbaseTransaction([transactions])
+- hd = generateBlockHeader([transactions, cb])
+- generateNonce(hd)
 - See example
