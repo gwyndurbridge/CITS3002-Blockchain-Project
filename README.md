@@ -5,7 +5,7 @@ Header:
 - prevBlockHash
 - timeStamp
 - difficultyTarget
-- (extension) merkle root
+- merkle root
 - nonce
 
 Body:
