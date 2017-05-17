@@ -1,10 +1,5 @@
 import socket, ssl, pprint
-
-class printStyle:
-    moneyBag = u"\U0001F4B0"
-    bold = "\033[1m"
-    purple = "\033[95m"
-    reset = "\033[0m"
+import printStyle as ps
 
 def createSocket(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,9 +26,12 @@ def createSocket(host, port):
         # note that closing the SSLSocket will also close the underlying socket
         ssl_sock.close()
 
+def send(data):
+    print("Attempting to send...")
+
 def main():
     # Welcome message
-    print("\n" + printStyle.moneyBag + printStyle.bold + printStyle.purple + " CITS3002 CLIENT " + printStyle.reset + printStyle.moneyBag + "\n")
+    print("\n" + ps.moneyBag + ps.bold + ps.purple + " CITS3002 CLIENT " + ps.reset + ps.moneyBag + "\n")
     
     # Request the host and port number of the serverfrom the user
     host = input("Please enter the HOST address of the server: ")
