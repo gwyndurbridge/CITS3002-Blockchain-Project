@@ -21,13 +21,15 @@ to the hash.
 Complete:
 - createCoinbaseTransaction(json[] transactions) : json coinbaseTransaction
 - generateBlockHeader(int difficulty, json[] transactions) : dict header
+- generateBlockBody(json[] transactions) : dict{hash:transaction]
 - generateNonce(dict header) : dict headerWithNonce
 - checkNonce(dict header) : bool isValid
+- merkleRoot(json[] transactions) : str root
+- pairList([] list) : [] pairs
+- hashInput(str input) : str(hex) hash
 
 Incomplete:
 - (returning dummy value) getMinerKey() : str minerKey
-- generateBlockBody(json[] transactions) : dict{hash:transaction]
-- (just concatenating them rn) merkleRoot(json[] transactions) : str root
 - (returning dummy value) getLastBlockHash() : str lastBlockHash
 - addToBlockchain(dict header, dict body)
 

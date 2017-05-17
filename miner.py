@@ -23,16 +23,58 @@ def generateBlockHeader(difficulty, transactions):
 
 #should return dict of transactions with has as key
 def generateBlockBody(transactions):
-    return transactions
+    dict = {}
+
+    for transaction in transactions:
+        digest = hashInput(transaction)
+        dict[digest] = transaction
+
+    return dict
 
 #hash pair of transactions, add them together. Hash again
 #just returning array rn. Need to do properly
 def merkleRoot(transactions):
-    root = ''
-    for transaction in transactions:
-        root += transaction
+
+    treeNextLevel = transactions
+
+    loop = True
+    while loop:
+        #split list into pairs
+        pairs = pairList(treeNextLevel)
+        #start new list
+        treeNextLevel = []
+        for pair in pairs:
+            pairCombinedHash = ''
+            #hash each element of pair and add together
+            for half in pair:
+                digest = hashInput(half)
+                pairCombinedHash += digest
+            #add combined hash to list to use in next level of tree
+            treeNextLevel.append(pairCombinedHash)
+        if len(treeNextLevel) == 1:
+            loop = False
+
+    root = treeNextLevel[0]
+    print('merkel root: ', root)
 
     return root
+
+def pairList(list):
+    #go through list in steps of 2
+    pairs = []
+    for i in range(0, len(list), 2):
+        #if first of pair is last element in list it has nothing to pair with so pair with self
+        if list[i] == len(list)-1:
+            pairs.append([list[i],list[i]])
+        else:
+            pairs.append([list[i],list[i+1]])
+    return pairs
+
+def hashInput(inp):
+    hash = hashlib.sha256()
+    val = (inp).encode('utf-8')
+    hash.update(val)
+    return hash.hexdigest()
 
 #reference blockchain to get hash of previous block
 def getLastBlockHash():
@@ -50,15 +92,10 @@ def generateNonce(header):
         #generate random nonce
         nonce = random.randint(0,9999999999999)
 
+        #add nonce to header
         header['nonce'] = nonce
 
-        #combine input and nonce
-        val = (json.dumps(header)).encode('utf-8')
-
-        #hash header-nonce combination
-        hash = hashlib.sha256()
-        hash.update(val)
-        digest = hash.digest()
+        digest = hashInput(json.dumps(header))
 
         #create string to hold bits as int rather than byte type
         bits = ''
@@ -66,7 +103,7 @@ def generateNonce(header):
         #takes bits one at a time and convert to 8-bit binary string
         for i in digest:
             #add binary string representation of byte into bits string
-            bits += bin(i)[2:].zfill(8)
+            bits += bin(int(i,16))[2:].zfill(8)
 
         for i in range(0,difficulty + 1):
             #check if value of bit is 0
@@ -92,16 +129,13 @@ def generateNonce(header):
 
 #take hash as input to check against
 def checkNonce(header):
-    hash = hashlib.sha256()
-    check = (json.dumps(header)).encode('utf-8')
-    hash.update(check)
-    digest = hash.digest()
+    digest = hashInput(json.dumps(header))
     bits = ''
     #change so prints in bits and returns true if correct
     for i in digest:
         # add binary string representation of byte into bits string
-        bits += bin(i)[2:].zfill(8)
-    print(bits)
+        bits += bin(int(i,16))[2:].zfill(8)
+    print('header hash bits:', bits)
 
     #count leading 0s
     count = 0
@@ -120,8 +154,6 @@ def checkNonce(header):
 def addToBlockchain(header, body):
     return True
 
-
-
 """example"""
 difficulty = 10
 
@@ -131,9 +163,11 @@ transactionString = json.dumps(transaction)
 
 coinbaseTransaction = createCoinbaseTransaction([transactionString])
 
+print('body: ', generateBlockBody([transactionString, coinbaseTransaction]))
+
 header = generateBlockHeader(difficulty, [transactionString, coinbaseTransaction])
 headerWithNonce = generateNonce(header)
-print(header)
+print('header:', header)
 print(checkNonce(header))
 
 
