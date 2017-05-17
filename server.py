@@ -1,10 +1,16 @@
-import socket, ssl
+import socket, ssl, select
 import printStyle as ps
+
+# http://stackoverflow.com/questions/17539859/how-to-create-multi-server-sockets-on-one-client-in-python
 
 def startServer():
     bindsocket = socket.socket()
     bindsocket.bind(('', 5009))
     bindsocket.listen(5) # (backlog) specifies the number of unaccepted connections that the system will allow before refusing new connections
+
+    print("Starting server")
+    print("Host address: " + socket.gethostname())
+    # print("Sock address: " + bindsocket.getsockname()[0])
 
     def do_something(connstream, data):
         print("do_something:", data)
@@ -31,7 +37,7 @@ def startServer():
 
 def main():
     # Welcome message
-    print("\n" + ps.moneyBag + ps.bold + ps.purple + " CITS3002 SERVER " + ps.reset + ps.moneyBag + "\n")
+    print("\n" + ps.moneyBag + ps.bold + ps.purple + "  CITS3002 SERVER " + ps.reset + ps.moneyBag + "\n")
     startServer()
 
 if __name__ == '__main__':
