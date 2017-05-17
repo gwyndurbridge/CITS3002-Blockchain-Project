@@ -1,13 +1,28 @@
 import socket, ssl, select
 import printStyle as ps
 
+# Dictionary of all sock connections
+socks = {}
+
 # http://stackoverflow.com/questions/17539859/how-to-create-multi-server-sockets-on-one-client-in-python
+
+def startMultipleSevers():
+    sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socks[sock1.fileno()] = sock1
+    poll = select.poll()
+    for sock in socks:
+        poll.register(sock)
+    while 1:
+        fd, event = poll.poll() # Optional timeout parameter in seconds
+        sock = socks[fd]
+        sock.recv(1024) # Do stuff
 
 def startServer():
     bindsocket = socket.socket()
     bindsocket.bind(('', 5009))
     bindsocket.listen(5) # (backlog) specifies the number of unaccepted connections that the system will allow before refusing new connections
 
+    print("Sock fileno: ", bindsocket.fileno())
     print("Starting server")
     print("Host address: " + socket.gethostname())
     # print("Sock address: " + bindsocket.getsockname()[0])
