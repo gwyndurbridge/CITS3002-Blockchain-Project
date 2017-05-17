@@ -6,14 +6,12 @@ class printStyle:
     purple = "\033[95m"
     reset = "\033[0m"
 
-def createSocket():
+def createSocket(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
     ssl_sock = ssl.wrap_socket(s,
                             ca_certs="cert.pem",
                             cert_reqs=ssl.CERT_REQUIRED)
-
-    ssl_sock.connect(('127.0.0.1', 1996))
+    ssl_sock.connect((host, 5009))
 
     print(repr(ssl_sock.getpeername()))
     print(ssl_sock.cipher())
@@ -35,11 +33,20 @@ def createSocket():
 
 def main():
     # Welcome message
-    # u"\U0001F4B0" - Money Bag Emoji
-    # "\033[1m" - Start bold
-    # "\033[0m" - End bold
     print("\n" + printStyle.moneyBag + printStyle.bold + printStyle.purple + " CITS3002 CLIENT " + printStyle.reset + printStyle.moneyBag + "\n")
-    address = input("Please enter the IP of the server: ")
+    
+    # Request the host and port number of the serverfrom the user
+    host = input("Please enter the HOST address of the server: ")
+    port = input("Please enter the PORT number you wish to use: ")
+    
+    # Use default values if no info is given
+    if len(host)==0:
+        host = "127.0.0.1" # localhost
+    if len(port) == 0:
+        port = 5009 # default port
+    
+    # Create the socket with the given user info
+    createSocket(host, port)
 
 if __name__ == '__main__':
     main()
