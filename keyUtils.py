@@ -12,19 +12,19 @@ def generateSign(message,key):
 def verifyMessage(message,signature,key):
     try:
         byteMessage = message.encode('utf8')
-        rsa.verifiy(byteMessage,signature,key)
+        rsa.verify(byteMessage,signature,key)
         return True
-     except Exception as e:
-         print('VERFICATION FAILED - Incorrect message')
-         return False
+    except Exception as e:
+    	print('VERFICATION FAILED - Incorrect message')
+    	return False
 
 def encryptMessage(message,key):
     byteMessage = message.encode('utf8')
-    return rsa.encrypt(byteMessage)
+    return rsa.encrypt(byteMessage,key)
 
 def decryptMessage(byteMessage,key):
     try:
-        message = rsa.decrypt(byteMessage).decode('utf8')
+        message = rsa.decrypt(byteMessage,key).decode('utf8')
         return message
     except Exception as e:
         print('DECRYPTION FAILED')
