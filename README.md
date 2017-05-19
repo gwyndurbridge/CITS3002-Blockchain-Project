@@ -1,5 +1,13 @@
 # CITS3002-Blockchain-Project
 
+# Transaction (dict with these keys)
+- 'sender':string
+- 'receiver':string
+- 'value': int
+- 'payment': int
+- 'change': int
+- 'signature':string
+
 # Block
 Header:
 - prevBlockHash
@@ -9,8 +17,19 @@ Header:
 - nonce
 
 Body:
-- Coinbase transaction
-- Rest of transcations
+- hash : transaction
+
+# Blockchain
+Array of blocks. Each block is a dict with 'header' and 'body' keys.
+Entire blockchain array stored as json string
+
+# Miner
+#To use:
+
+run(t, d)
+    where
+        t = list of json transactions
+        d = (int) difficulty
 
 Only the header of the block is hashed to find the correct nonce, so the merkle root is what actually
 ties the transactions to the block and makes sure they were not changed.
@@ -19,6 +38,7 @@ to the hash.
 
 # Miner functions:
 Complete:
+- run(json[] transactions, int difficulty)
 - createCoinbaseTransaction(json[] transactions) : json coinbaseTransaction
 - generateBlockHeader(int difficulty, json[] transactions) : dict header
 - generateBlockBody(json[] transactions) : dict{hash:transaction]
@@ -27,14 +47,10 @@ Complete:
 - merkleRoot(json[] transactions) : str root
 - pairList([] list) : [] pairs
 - hashInput(str input) : str(hex) hash
+- getLastBlockHash() : str lastBlockHash
+- addToBlockchain(dict header, dict body)
+- calculateDifficulty() : int difficultyTarget
 
 Incomplete:
 - (returning dummy value) getMinerKey() : str minerKey
-- (returning dummy value) getLastBlockHash() : str lastBlockHash
-- addToBlockchain(dict header, dict body)
 
-To use:
-- cb = createCoinbaseTransaction([transactions])
-- hd = generateBlockHeader([transactions, cb])
-- generateNonce(hd)
-- See example

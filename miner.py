@@ -1,5 +1,10 @@
-import hashlib, sys, time, random, json
+import hashlib, sys, time, random, json, os.path
+
 random.seed()
+defaultDifficulty = 35
+
+def getMinerKey():
+    return 'miner'
 
 #creates money out of nowhere for the miner and adds transaction fees
 #return json string of coinbase transaction
@@ -13,15 +18,11 @@ def createCoinbaseTransaction(transactions):
 
     return json.dumps(coinbaseTransaction)
 
-def getMinerKey():
-    return 'miner'
-
 #creates a header for the block without a nonce
 def generateBlockHeader(difficulty, transactions):
     blockHeader = {'prevBlockHash':getLastBlockHash(), 'timeStamp':time.time(), 'difficultyTarget':difficulty, 'nonce':None, 'merkleRoot':merkleRoot(transactions)}
     return  blockHeader
 
-#should return dict of transactions with has as key
 def generateBlockBody(transactions):
     dict = {}
 
@@ -31,8 +32,6 @@ def generateBlockBody(transactions):
 
     return dict
 
-#hash pair of transactions, add them together. Hash again
-#just returning array rn. Need to do properly
 def merkleRoot(transactions):
 
     treeNextLevel = transactions
@@ -55,7 +54,6 @@ def merkleRoot(transactions):
             loop = False
 
     root = treeNextLevel[0]
-    print('merkel root: ', root)
 
     return root
 
@@ -64,7 +62,7 @@ def pairList(list):
     pairs = []
     for i in range(0, len(list), 2):
         #if first of pair is last element in list it has nothing to pair with so pair with self
-        if list[i] == len(list)-1:
+        if i == len(list)-1:
             pairs.append([list[i],list[i]])
         else:
             pairs.append([list[i],list[i+1]])
@@ -78,10 +76,16 @@ def hashInput(inp):
 
 #reference blockchain to get hash of previous block
 def getLastBlockHash():
-    #get last block
-    #hash it
-    #return hash
-    return '0000smileyface'
+    #open and read the blockchain
+    with open('blockchain.json', 'r+') as blockchainFile:
+        blockchain = blockchainFile.read()
+        #if empty
+        if blockchain == '' or blockchain == '\n':
+            return None
+        else:
+        #load the blockchain and grab the last element
+            blockchain = json.loads(blockchain)
+            return hashInput(json.dumps(blockchain[-1]))
 
 def generateNonce(header):
     loop = True
@@ -94,6 +98,7 @@ def generateNonce(header):
 
         #add nonce to header
         header['nonce'] = nonce
+        difficulty = header['difficultyTarget']
 
         digest = hashInput(json.dumps(header))
 
@@ -122,9 +127,10 @@ def generateNonce(header):
             else:
                 break
 
-    #print time taken
-    print(time.time() - timer)
-    print('successful nonce: ', nonce)
+    #add time taken
+    processingTime = time.time() - timer
+    header['processingTime'] = processingTime
+
     return header
 
 #take hash as input to check against
@@ -135,7 +141,7 @@ def checkNonce(header):
     for i in digest:
         # add binary string representation of byte into bits string
         bits += bin(int(i,16))[2:].zfill(8)
-    print('header hash bits:', bits)
+    #print('header hash bits:', bits)
 
     #count leading 0s
     count = 0
@@ -152,22 +158,71 @@ def checkNonce(header):
 
 #add block to blockchain
 def addToBlockchain(header, body):
-    return True
+
+    block = {'header':header, 'body':body}
+
+    with open('blockchain.json', 'r+') as blockchainFile:
+        blockchain = blockchainFile.read()
+        # if the chain is empty put the block in an array first
+        if blockchain == '' or blockchain == '\n':
+            block = [block]
+            blockchainFile.write(json.dumps(block))
+            return True
+
+        #if there is already blocks there append it to the chain array
+        blockchain = json.loads(blockchain)
+        blockchain.append(block)
+        blockchainFile.seek(0)
+        blockchainFile.write(json.dumps(blockchain))
+
+def calculateDifficulty():
+    with open('blockchain.json', 'r+') as blockchainFile:
+        blockchain = blockchainFile.read()
+        #return default if its the first one
+        if blockchain == '' or blockchain == '\n':
+            return defaultDifficulty
+        blockchain = json.loads(blockchain)
+
+        average = 0
+        #find average time taken
+        for block in blockchain:
+            average += block['header']['processingTime']
+            average = average/2
+
+        #if average is more than 2 minutes return previous block difficulty - 1
+        if average > 120:
+            return blockchain[-1]['header']['difficultyTarget'] - 1
+        #if average is less than 2 minutes return previous block difficulty + 1
+        return  blockchain[-1]['header']['difficultyTarget'] + 1
+
+
+def run(transactions):
+    #if there's no blockchain file, make one
+    if not os.path.isfile('blockchain.json'):
+        open('blockchain.json','w+')
+        difficulty = defaultDifficulty
+    else:
+        difficulty = calculateDifficulty()
+
+    coinbaseTransaction = createCoinbaseTransaction(transactions)
+    transactions.append(coinbaseTransaction)
+    body = generateBlockBody(transactions)
+
+    #print('body: ', body)
+
+    head = generateBlockHeader(difficulty, transactions)
+    head = generateNonce(head)
+
+    #print('head: ', head)
+
+    addToBlockchain(head, body)
 
 """example"""
-difficulty = 10
 
-#example transaction
-transaction = {'sender':'Alice', 'receiver':'Bob', 'value':50, 'payment': 40, 'change':5, 'signature':'u4h298h4g92'}
-transactionString = json.dumps(transaction)
+t1 = {'sender':'Andy', 'receiver':'jerry', 'value':50, 'payment': 40, 'change':5, 'signature':'u4h298h4g92'}
+t2 = {'sender':'James', 'receiver':'Billy', 'value':35, 'payment': 10, 'change':15, 'signature':'u4h298h4g92'}
+ts1 = json.dumps(t1)
+ts2 = json.dumps(t2)
+transactions = [ts1, ts2]
 
-coinbaseTransaction = createCoinbaseTransaction([transactionString])
-
-print('body: ', generateBlockBody([transactionString, coinbaseTransaction]))
-
-header = generateBlockHeader(difficulty, [transactionString, coinbaseTransaction])
-headerWithNonce = generateNonce(header)
-print('header:', header)
-print(checkNonce(header))
-
-
+run(transactions)
