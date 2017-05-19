@@ -8,16 +8,17 @@
 - 'change': int
 - 'signature':string
 
-# Block
-Header:
+# Block (dict with 'header' and 'body' keys)
+Header (dict with these keys):
 - prevBlockHash
 - timeStamp
+- processingTime
 - difficultyTarget
-- merkle root
+- merkleRoot
 - nonce
 
-Body:
-- hash : transaction
+Body (dict with hash as key to transactions):
+- {hash : transaction}
 
 # Blockchain
 Array of blocks. Each block is a dict with 'header' and 'body' keys.
