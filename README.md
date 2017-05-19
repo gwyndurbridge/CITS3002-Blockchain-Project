@@ -27,10 +27,9 @@ Entire blockchain array stored as json string
 # Miner
 #To use:
 
-run(t, d)
-    where
-        t = list of json transactions
-        d = (int) difficulty
+run(t)
+    where    :    t = list of json string transactions
+
 
 Only the header of the block is hashed to find the correct nonce, so the merkle root is what actually
 ties the transactions to the block and makes sure they were not changed.
