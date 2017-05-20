@@ -2,6 +2,7 @@ import hashlib, sys, time, random, json, os.path
 
 random.seed()
 defaultDifficulty = 35
+useDefaultDifficulty = False
 
 def getMinerKey():
     return 'miner'
@@ -33,7 +34,6 @@ def generateBlockBody(transactions):
     return dict
 
 def merkleRoot(transactions):
-
     treeNextLevel = transactions
 
     loop = True
@@ -128,8 +128,8 @@ def generateNonce(header):
                 break
 
     #add time taken
-    processingTime = time.time() - timer
-    header['processingTime'] = processingTime
+    #processingTime = time.time() - timer
+    #header['processingTime'] = processingTime
 
     return header
 
@@ -185,21 +185,32 @@ def calculateDifficulty():
 
         average = 0
         #find average time taken
-        for block in blockchain:
-            average += block['header']['processingTime']
-            average = average/2
+        for i in range(1,len(blockchain)):
+            #add up time between release of blocks.
+            #skips first block because there's no previous reference
+            average += blockchain[i]['header']['timeStamp'] - blockchain[i-1]['header']['timeStamp']
+        average = average/len(blockchain)
 
-        #if average is more than 2 minutes return previous block difficulty - 1
+        #if average is more than 2 minutes return previous block difficulty - 2
         if average > 120:
-            return blockchain[-1]['header']['difficultyTarget'] - 1
-        #if average is less than 2 minutes return previous block difficulty + 1
-        return  blockchain[-1]['header']['difficultyTarget'] + 1
+            return blockchain[-1]['header']['difficultyTarget'] - 2
+        #if average is less than 2 minutes return previous block difficulty + 2
+        return  blockchain[-1]['header']['difficultyTarget'] + 2
 
+def setDifficulty(difficulty, alwaysUse):
+    global defaultDifficulty
+    global useDefaultDifficulty
+
+    defaultDifficulty = difficulty
+    #should be bool
+    useDefaultDifficulty = alwaysUse
 
 def run(transactions):
     #if there's no blockchain file, make one
     if not os.path.isfile('blockchain.json'):
         open('blockchain.json','w+')
+        difficulty = defaultDifficulty
+    elif useDefaultDifficulty:
         difficulty = defaultDifficulty
     else:
         difficulty = calculateDifficulty()
@@ -225,4 +236,6 @@ ts1 = json.dumps(t1)
 ts2 = json.dumps(t2)
 transactions = [ts1, ts2]
 
+setDifficulty(31, True)
+run(transactions)
 run(transactions)
