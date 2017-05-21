@@ -2,11 +2,10 @@ import socket, ssl, pprint
 import printStyle as ps
 
 def createSocket(host, port):
+    print("Creating socket with: " + host + ":", port)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ssl_sock = ssl.wrap_socket(s,
-                            ca_certs="cert.pem",
-                            cert_reqs=ssl.CERT_REQUIRED)
-    ssl_sock.connect((host, 5009))
+    ssl_sock = ssl.wrap_socket(s,ca_certs="cert.pem",cert_reqs=ssl.CERT_REQUIRED)
+    ssl_sock.connect((host, port))
 
     print(repr(ssl_sock.getpeername()))
     print(ssl_sock.cipher())
@@ -41,7 +40,7 @@ def main():
     if len(host)==0:
         host = "127.0.0.1" # localhost
     if len(port) == 0:
-        port = 5009 # default port
+        port = 9999 # default port
     
     # Create the socket with the given user info
     createSocket(host, port)
