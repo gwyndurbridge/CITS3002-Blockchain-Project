@@ -3,12 +3,12 @@ import rsa
 def generateKeys():
     return rsa.newkeys(2048)
 
-#Should use private key for signature creation
+#Should use senders private key for signature creation
 def generateSign(message,key):
     byteMessage = message.encode('utf8')
     return rsa.sign(byteMessage, key, 'SHA-1')
 
-#Should use public key to verify signature
+#Should use senders public key to verify signature
 def verifyMessage(message,signature,key):
     try:
         byteMessage = message.encode('utf8')
@@ -17,11 +17,11 @@ def verifyMessage(message,signature,key):
     except Exception as e:
     	print('VERFICATION FAILED - Incorrect message')
     	return False
-
+#Should use recievers public key to encrypt
 def encryptMessage(message,key):
     byteMessage = message.encode('utf8')
     return rsa.encrypt(byteMessage,key)
-
+#Should use recievers private to dencrypt
 def decryptMessage(byteMessage,key):
     try:
         message = rsa.decrypt(byteMessage,key).decode('utf8')
@@ -29,7 +29,7 @@ def decryptMessage(byteMessage,key):
     except Exception as e:
         print('DECRYPTION FAILED')
         return ''
-
+#Allows for keys to be shared as a pem file
 def generatePEM(key,name,isPublic):
     toWrite = key.save_pkcs1()
     if isPublic:

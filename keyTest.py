@@ -2,7 +2,7 @@ import keyUtils
 import pytest
 
 message = "TESTING"
-name = "jane"
+name = "andy"
 (public_key,private_key) = keyUtils.generateKeys()
 
 def test_signature():
