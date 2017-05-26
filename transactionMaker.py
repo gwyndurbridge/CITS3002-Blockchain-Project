@@ -25,10 +25,3 @@ def checkSign(transactionString):
 	transaction = json.loads(transactionString)
 	signature = transaction['signature']
 	return keyUtils.verifyMessage(json.dumps(transaction['transaction']),signature,getPubilicKey(transaction['transaction']['sender']))
-
-
-
-transaction = generateTransaction('jane','andy',50,20,25)
-
-
-print(checkSign(transaction))
