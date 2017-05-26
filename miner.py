@@ -1,59 +1,68 @@
-import hashlib, sys, time, random
-random.seed()
+import os.path, json, time
+import minerFunctions as mf
+import minerUtil as ut
 
-text = 'example'
+#take hash as input to check against
+def checkNonce(header):
+    digest = ut.hashInput(json.dumps(header))
+    bits = ''
+    #change so prints in bits and returns true if correct
+    for i in digest:
+        # add binary string representation of byte into bits string
+        bits += bin(int(i,16))[2:].zfill(8)
+    #print('header hash bits:', bits)
 
-difficulty = 20
+    #count leading 0s
+    count = 0
+    for bit in bits:
+        if bit == '0':
+            count += 1
+        else:
+            break
+    #return true if valid
+    if count >= header['difficultyTarget']:
+        return True
+    #return False if not valid
+    return False
 
+def setDifficulty(difficulty, alwaysUse):
+    mf.setDefaults(difficulty, alwaysUse)
 
-def test(text, difficulty): 
-    nonce = random.randint(0,9999999999999)
-    loop = True
-    best = 0
-    timer = time.time()
+def run(transactions):
+    defaultDifficulty = mf.defaultDifficulty
+    useDefaultDifficulty = mf.useDefaultDifficulty
 
+    #if there's no blockchain file, make one
+    if not os.path.isfile('blockchain.json'):
+        open('blockchain.json','w+')
+        difficulty = defaultDifficulty
+    elif useDefaultDifficulty:
+        difficulty = defaultDifficulty
+    else:
+        difficulty = mf.calculateDifficulty()
 
-    while loop:
-        nonce = random.randint(0,9999999999999)
+    coinbaseTransaction = mf.createCoinbaseTransaction(transactions)
+    transactions.append(coinbaseTransaction)
+    body = mf.generateBlockBody(transactions)
 
-        val = (text + str(nonce)).encode('utf-8')
+    #print('body: ', body)
 
-        h = hashlib.sha256()
-        h.update(val)
-        h = h.digest()
+    head = mf.generateBlockHeader(difficulty, transactions)
+    head = mf.generateNonce(head)
 
+    #print('head: ', head)
 
-        bits = ''
+    mf.addToBlockchain(head, body)
 
-        for i in h:
-            bits += bin(i)[2:].zfill(8)
+"""example"""
 
-        for i in range(0,difficulty + 1):
-            if int(bits[i]) == 0:
-                if int(i) > best:
-                    best = int(i)
-                sys.stdout.write('Best: %d  \r' % best)
-                sys.stdout.flush()
+'''t1 = json.dumps({'sender':'Andy', 'receiver':'jerry', 'value':50, 'payment': 40, 'change':5, 'time' : time.ctime()})
+t1 = json.dumps({'transaction' : t1, 'signature' : 'u4h298h4g92'})
+t2 = json.dumps({'sender':'James', 'receiver':'Billy', 'value':35, 'payment': 10, 'change':15, 'time' : time.ctime()})
+t2 = json.dumps({'transaction': t2, 'signature':'u4h298h4g92'})
 
-                if int(i) == difficulty:
-                    loop = False
+transactions = [t1, t2]
 
-            else:
-                break
-
-
-    print(time.time() - timer)
-    print('successful nonce: ', nonce)
-    return nonce
-
-checkNonce = test(text, difficulty)
-
-h = hashlib.sha256()
-check = (text + str(checkNonce)).encode('utf-8')
-h.update(check)
-h = h.digest()
-print('====Check Nonce====')
-print('hash : ', h)
-print('bytes: ',h[0],h[1],h[2],h[3],h[4],h[5],h[6],h[7],h[8])
-
-
+setDifficulty(31, True)
+run(transactions)
+run([])'''
