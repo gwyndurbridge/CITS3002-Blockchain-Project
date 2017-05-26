@@ -42,7 +42,7 @@ def createCoinbaseTransaction(transactions):
         transaction = json.loads(transaction['transaction'])
         fee += transaction['value'] - transaction['payment'] - transaction['change']
 
-    coinbaseTransaction = json.dumps({'sender' : None ,'reciever' : ut.getMinerKey(), 'value' : fee+generation, 'payment' : fee+generation, 'change' : 0, 'time' : time.ctime()})
+    coinbaseTransaction = json.dumps({'sender' : None ,'receiver' : ut.getMinerKey(), 'value' : fee+generation, 'payment' : fee+generation, 'change' : 0, 'time' : time.ctime()})
     coinbaseTransactionFull = {'transaction' : coinbaseTransaction, 'signature' : None}
 
     return json.dumps(coinbaseTransactionFull)
