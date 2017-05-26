@@ -50,3 +50,8 @@ def readPEM(name,isPublic):
         return rsa.PublicKey.load_pkcs1(keyData)
     else:
         return rsa.PrivateKey.load_pkcs1(keyData)
+
+def generateFullPEM(name):
+	(public_key,private_key) = generateKeys()
+	generatePEM(public_key,name,True)
+	generatePEM(private_key,name,False)
