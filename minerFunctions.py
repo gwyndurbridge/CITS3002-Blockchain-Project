@@ -1,5 +1,6 @@
 import json, random, time, sys
 import minerUtil as ut
+import transactionMaker as tm
 
 random.seed()
 defaultDifficulty = 35
@@ -42,7 +43,7 @@ def createCoinbaseTransaction(transactions):
         transaction = json.loads(transaction['transaction'])
         fee += transaction['value'] - transaction['payment'] - transaction['change']
 
-    coinbaseTransaction = json.dumps({'sender' : None ,'reciever' : ut.getMinerKey(), 'value' : fee+generation, 'payment' : fee+generation, 'change' : 0, 'time' : time.ctime()})
+    coinbaseTransaction = json.dumps({'sender' : None ,'receiver' : ut.getMinerKey(), 'value' : fee+generation, 'payment' : fee+generation, 'change' : 0, 'time' : time.ctime()})
     coinbaseTransactionFull = {'transaction' : coinbaseTransaction, 'signature' : None}
 
     return json.dumps(coinbaseTransactionFull)
@@ -51,8 +52,12 @@ def generateBlockBody(transactions):
     dict = {}
 
     for transaction in transactions:
-        digest = ut.hashInput(transaction)
-        dict[digest] = transaction
+        if tm.checkSign(transaction):
+            digest = ut.hashInput(transaction)
+            dict[digest] = transaction
+        else:
+            #TODO
+            pass
 
     return dict
 
