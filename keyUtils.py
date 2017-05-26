@@ -6,7 +6,7 @@ def generateKeys():
 #Should use senders private key for signature creation
 def generateSign(message,key):
     byteMessage = message.encode('utf8')
-    return rsa.sign(byteMessage, key, 'SHA-1')
+    return rsa.sign(byteMessage, key, 'SHA-256')
 
 #Should use senders public key to verify signature
 def verifyMessage(message,signature,key):
