@@ -10,7 +10,7 @@ def generateTransaction(sender,reciever,value,payment,change):
 	print(transactionDump)
 	signature = getSign(transactionDump,senderPrivate);
 	fullTransaction = {'transaction':transaction,'signature':signature}
-	return fullTransaction
+	return json.dumps(fullTransaction)
 
 def getPubilicKey(name):
 	return keyUtils.readPEM(name,True)
@@ -21,7 +21,8 @@ def getPrivateKey(name):
 def getSign(message,key):
 	return keyUtils.generateSign(message,key)
 
-def checkSign(transaction):
+def checkSign(transactionString):
+	transaction = json.loads(transactionString)
 	signature = transaction['signature']
 	return keyUtils.verifyMessage(json.dumps(transaction['transaction']),signature,getPubilicKey(transaction['transaction']['sender']))
 
