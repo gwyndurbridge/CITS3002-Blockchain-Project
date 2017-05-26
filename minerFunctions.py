@@ -1,5 +1,5 @@
 import json, random, time, sys
-import util as ut
+import minerUtil as ut
 
 random.seed()
 defaultDifficulty = 35

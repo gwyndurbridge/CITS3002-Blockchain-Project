@@ -1,6 +1,6 @@
 import os.path, json, time
-import mainFunctions as mf
-import util as ut
+import minerFunctions as mf
+import minerUtil as ut
 
 #take hash as input to check against
 def checkNonce(header):
