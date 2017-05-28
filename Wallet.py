@@ -12,7 +12,7 @@ class Wallet:
 		self.readPending()
 		self.loadBlockchain()
 
-	def end(self, arg):
+	def end(self):
 		self.writePending()
 
 	def readPending(self):
@@ -26,9 +26,9 @@ class Wallet:
 		with open(self.name+'Pending.json','w') as f:
 			json.dump(self.pendingTrans,f)
 
-	def generateTransaction(self,reciever,value,payment,change):
+	def generateTransaction(self,receiver,value,payment,change):
 		#will use client.py to send transaction
-		transactionDump = transactionMaker.generateTransaction(self.name,reciever,value,payment,change)
+		transactionDump = transactionMaker.generateTransaction(self.name,receiver,value,payment,change)
 		transactionHash = minerUtil.hashInput(transactionDump)
 		transactionLoss = value - change
 		self.pendingTrans[transactionHash] = transactionLoss
