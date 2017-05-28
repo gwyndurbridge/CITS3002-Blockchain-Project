@@ -16,14 +16,14 @@ class Wallet:
 		self.writePending()
 
 	def readPending(self):
-		pendingName = self.name+'Pending.json'
+		pendingName = 'json/'+self.name+'Pending.json'
 		if os.path.isfile(pendingName):
 			with open(pendingName,'r') as f:
 				json.load(self.pendingTrans,f)
 
 
 	def writePending(self):
-		with open(self.name+'Pending.json','w') as f:
+		with open('json/'+self.name+'Pending.json','w') as f:
 			json.dump(self.pendingTrans,f)
 
 	def generateTransaction(self,receiver,value,payment,change):
@@ -37,9 +37,9 @@ class Wallet:
 
 	# loads blockchain from file on startup
 	def loadBlockchain(self):
-		with open('blockchain.json', 'a') as temp:
+		with open('json/blockchain.json', 'a') as temp:
 			pass
-		with open('blockchain.json', 'r+') as blockchainFile:
+		with open('json/blockchain.json', 'r+') as blockchainFile:
 			blockchain = blockchainFile.read()
 			if blockchain == '' or blockchain == '\n':
 				#if blockchain is empty create empty list to hold chain. Balance is 0 by default
@@ -67,10 +67,10 @@ class Wallet:
 	# takes blockchain json, updates balances, pending transactions and local blockchain file
 	def update(self, newBlockchain):
 		# Create blockchain file if it doesnt already exist
-		with open('blockchain.json', 'a') as temp:
+		with open('json/blockchain.json', 'a') as temp:
 			pass
 
-		with open('blockchain.json', 'r+') as blockchainFile:
+		with open('json/blockchain.json', 'r+') as blockchainFile:
 			# create list of hashes of pending transactions
 			pendingKeys = []
 			for key in self.pendingTrans:

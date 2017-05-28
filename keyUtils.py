@@ -36,17 +36,17 @@ def decryptMessage(byteMessage,key):
 def generatePEM(key,name,isPublic):
 	toWrite = key.save_pkcs1()
 	if isPublic:
-		fileName = name+'Public'+'.pem'
+		fileName = 'certs/'+name+'Public'+'.pem'
 	else:
-		fileName = name+'Private'+'.pem'
+		fileName = 'certs/'+name+'Private'+'.pem'
 	with open(fileName,'wb') as f:
 		f.write(toWrite)
 
 def readPEM(name,isPublic):
 	if isPublic:
-		fileName = name+'Public'+'.pem'
+		fileName = 'certs/'+name+'Public'+'.pem'
 	else:
-		fileName = name+'Private'+'.pem'
+		fileName = 'certs/'+name+'Private'+'.pem'
 	with open(fileName,'rb') as f:
 		keyData = f.read()
 	if isPublic:
