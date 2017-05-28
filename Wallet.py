@@ -9,9 +9,8 @@ class Wallet:
 		self.pendingTrans = {} #should be in the form hash:value
 		self.numAvailableFunds = 0
 		self.numActualBalance = 0
-		print(self.name)
 		self.readPending()
-		self.update()
+		self.loadBlockchain()
 
 	def end(self, arg):
 		self.writePending()
@@ -36,12 +35,41 @@ class Wallet:
 		self.numAvailableFunds -= transactionLoss
 		return transactionDump
 
+	def loadBlockchain(self):
+		#loads blockchain from file on startup
+		with open('blockchain.json', 'a') as temp:
+			pass
+		with open('blockchain.json', 'r+') as blockchainFile:
+			blockchain = blockchainFile.read()
+			if blockchain == '' or blockchain == '\n':
+				#if blockchain is empty create empty list to hold chain. Balance is 0 by default
+				blockchain.seek(0)
+				blockchain.write(json.dumps([]))
+			else:
+				actualBalanceChange = 0
+				availableFundsChange = 0
+				blockchainOpen = json.loads(blockchain)
+				for block in blockchainOpen:
+					body = block['body']
+					for key in body:
+						transaction = json.loads(json.loads(body[key])['transaction'])
+						if transaction['sender'] == self.name:
+							# if you are the sender lose the payment value and get change
+							actualBalanceChange += transaction['change'] - transaction['value']
+							availableFundsChange += transaction['change'] - transaction['value']
+						elif transaction['receiver'] == self.name:
+							# if you are the receiver gain payment
+							actualBalanceChange += transaction['payment']
+							availableFundsChange += transaction['payment']
+				self.numActualBalance += actualBalanceChange
+				self.numAvailableFunds += availableFundsChange
+
 	def update(self, newBlockchain):
 		# Create blockchain file if it doesnt already exist
 		with open('blockchain.json', 'a') as temp:
 			pass
 
-		with open('blockchain1.json', 'r+') as blockchainFile:
+		with open('blockchain.json', 'r+') as blockchainFile:
 			# create list of hashes of pending transactions
 			pendingKeys = []
 			for key in self.pendingTrans:
@@ -98,23 +126,5 @@ class Wallet:
 		#needs to remove and undo the Incorrect transaction from the avaliableFunds and pendingTrans
 		pass
 
-	def test(self):
-		# example - make update read blockchain1 and make blockchain1 == blockchain
-		self.name = 'Jill'
 
-		t1 = json.dumps({'sender': self.name, 'receiver': 'jerry', 'value': 50, 'payment': 40, 'change': 5, 'time': time.ctime()})
-		t1 = json.dumps({'transaction': t1, 'signature': 'u4h298h4g92'})
-		t2 = json.dumps({'sender': self.name, 'receiver': 'bobba', 'value': 30, 'payment': 20, 'change': 1, 'time': time.ctime()})
-		t2 = json.dumps({'transaction': t2, 'signature': 'u4h298h4g92'})
-
-		self.pendingTrans[minerUtil.hashInput(t1)] = t1
-		self.pendingTrans[minerUtil.hashInput(t2)] = t2
-
-		import miner
-		miner.run([t1, t2])
-
-		with open('blockchain.json', 'r') as bc:
-			bcr = bc.read()
-			self.update(bcr)
-
-		print(self.numActualBalance, self.numAvailableFunds)
+#Jill = Wallet("jerry")
