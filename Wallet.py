@@ -35,8 +35,8 @@ class Wallet:
 		self.numAvailableFunds -= transactionLoss
 		return transactionDump
 
+	# loads blockchain from file on startup
 	def loadBlockchain(self):
-		#loads blockchain from file on startup
 		with open('blockchain.json', 'a') as temp:
 			pass
 		with open('blockchain.json', 'r+') as blockchainFile:
@@ -64,6 +64,7 @@ class Wallet:
 				self.numActualBalance += actualBalanceChange
 				self.numAvailableFunds += availableFundsChange
 
+	# takes blockchain json, updates balances, pending transactions and local blockchain file
 	def update(self, newBlockchain):
 		# Create blockchain file if it doesnt already exist
 		with open('blockchain.json', 'a') as temp:
@@ -121,10 +122,16 @@ class Wallet:
 				blockchainFile.seek(0)
 				blockchainFile.write(newBlockchain)
 
-	def transFailiure(self, arg):
-		#TODO
-		#needs to remove and undo the Incorrect transaction from the avaliableFunds and pendingTrans
-		pass
-
+	# returns transaction json corresponding to the hash of the failed
+	def transFailiure(self, failedHash):
+		# make list of hashes in current pending transaction dict
+		transactionKeys = []
+		for key in self.pendingTrans:
+			transactionKeys.append(key)
+		# if the failed transaction was pending for this wallet, return it o it can resend
+		if failedHash in transactionKeys:
+			return self.pendingTrans[failedHash]
+		# if it was not in there return 0 so client knows theres nothing to resend
+		return 0
 
 #Jill = Wallet("jerry")
