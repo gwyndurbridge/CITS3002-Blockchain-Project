@@ -11,7 +11,7 @@ def setDefaults(diff, use):
     useDefaultDifficulty = use
 
 def calculateDifficulty():
-    with open('blockchain.json', 'r+') as blockchainFile:
+    with open('json/blockchain.json', 'r+') as blockchainFile:
         blockchain = blockchainFile.read()
         #return default if its the first one
         if blockchain == '' or blockchain == '\n':
@@ -110,7 +110,7 @@ def addToBlockchain(header, body):
 
     block = {'header':header, 'body':body}
 
-    with open('blockchain.json', 'r+') as blockchainFile:
+    with open('json/blockchain.json', 'r+') as blockchainFile:
         blockchain = blockchainFile.read()
         # if the chain is empty put the block in an array first
         if blockchain == '' or blockchain == '\n':

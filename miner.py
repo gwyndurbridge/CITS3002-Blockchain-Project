@@ -33,8 +33,8 @@ def run(transactions):
     useDefaultDifficulty = mf.useDefaultDifficulty
 
     #if there's no blockchain file, make one
-    if not os.path.isfile('blockchain.json'):
-        open('blockchain.json','w+')
+    if not os.path.isfile('json/blockchain.json'):
+        open('json/blockchain.json','w+')
         difficulty = defaultDifficulty
     elif useDefaultDifficulty:
         difficulty = defaultDifficulty

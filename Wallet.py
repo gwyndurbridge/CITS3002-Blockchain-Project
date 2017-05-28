@@ -134,4 +134,3 @@ class Wallet:
 		# if it was not in there return 0 so client knows theres nothing to resend
 		return 0
 
-#Jill = Wallet("jerry")

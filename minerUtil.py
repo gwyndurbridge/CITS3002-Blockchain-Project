@@ -47,7 +47,7 @@ def merkleRoot(transactions):
 #reference blockchain to get hash of previous block
 def getLastBlockHash():
     #open and read the blockchain
-    with open('blockchain.json', 'r+') as blockchainFile:
+    with open('json/blockchain.json', 'r+') as blockchainFile:
         blockchain = blockchainFile.read()
         #if empty
         if blockchain == '' or blockchain == '\n':
