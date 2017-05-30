@@ -26,18 +26,20 @@ from time import sleep
 port = 9000
 
  
-@asyncio.coroutine
-def check_queue(task_name, work_queue):
-    while not work_queue.empty():
-        queue_item = yield from work_queue.get()
-        print('{0} grabbed item: {1}'.format(task_name, queue_item))
-        yield from asyncio.sleep(0.5)
+# @asyncio.coroutine
+# def check_queue(task_name, work_queue):
+#     while not work_queue.empty():
+#         queue_item = yield from work_queue.get()
+#         print('{0} grabbed item: {1}'.format(task_name, queue_item))
+#         yield from asyncio.sleep(0.5)
 
 def startServer():
     print("Starting as server")
     # q = multiprocessing.Queue()
 
-    q = asyncio.Queue()
+    # q = asyncio.Queue()
+
+    q = ""
 
     data = [5, 10, 13, -1]
     assert os.path.isfile('selfsigned.cert')
@@ -54,14 +56,16 @@ def startClient():
     assert os.path.isfile('selfsigned.cert')
     client_process = multiprocessing.Process(target=client, name='client')
     client_process.start()
-    try:
-        print("trying")
-        client_process.join(1)
-        assert not client_process.is_alive()
-    finally:
-        print("finally")
-        client_process.terminate()
-        client_process.join()
+
+    client_process.join(1)
+    # try:
+    #     print("trying")
+    #     client_process.join(1)
+    #     assert not client_process.is_alive()
+    # finally:
+    #     print("finally")
+    #     client_process.terminate()
+    #     client_process.join()
 
 def getTask():
         task = input("Server or Client? (use s or c)")
@@ -88,7 +92,7 @@ def server(data, q):
         """
         addr = writer.get_extra_info('peername')
         data = yield from reader.readline()
-        q.put([{"data":data}])
+        # q.put([{"data":data}])
         print("Server received {!r} from {}".format(data, addr))
         assert data == b'ping\n', repr(data)
         writer.write(b'pong\n')
@@ -124,9 +128,13 @@ def client():
         writer.close()
         print('Client done')
 
+    # loop = asyncio.get_event_loop()
+    # loop.run_until_complete(tcp_echo_client(loop))
+    # loop.close()
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(tcp_echo_client(loop))
-    loop.close()
+    loop.run_forever()
 
 # def myqueue(q):
 

@@ -13,6 +13,7 @@ class ChatServer:
         self.server = loop.run_until_complete(
                 asyncio.start_server(
                     self.accept_connection, "", port, loop=loop))
+        print("Starting server on", self.server.sockets[0].getsockname())
 
     def broadcast(self, message):
         for reader, writer in self.connections.values():
