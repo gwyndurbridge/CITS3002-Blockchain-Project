@@ -1,168 +1,81 @@
 """
-Server
-
-https://docs.python.org/3/library/socketserver.html
-
-
-
-http://stackoverflow.com/questions/8582766/adding-ssl-support-to-socketserver
-http://stackoverflow.com/questions/6001644/tcp-server-over-ssl-using-socketserver-tcpserver
+Inspired by:
+http://www.andy-pearce.com/blog/posts/2016/Jul/the-state-of-python-coroutines-asyncio-callbacks-vs-coroutines/
 """
 
-import socket
+"""
+To create certificates:
+
+openssl req -x509 -newkey rsa:2048 -keyout selfsigned.key -nodes -out selfsigned.cert -sha256 -days 1000
+"""
+
+import asyncio
 import ssl
-import PrintStyle as ps
-import threading
-# import socketserver
 
-class ClientThread(threading.Thread):
+class MyServer:
 
+    def __init__(self, server_name, port, loop):
+        self.server_name = server_name
+        self.connections = {}
 
-    def connect_to_port(self, host, port):
+        socket_connection = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        socket_connection.load_cert_chain('selfsigned.cert', 'selfsigned.key')
+
+        coro = asyncio.start_server(
+            self.accept_connection, 'localhost', port, ssl=socket_connection, loop=loop)
+        self.server = loop.run_until_complete(coro)
+
+        print("Starting '" + self.server_name + "' on", self.server.sockets[0].getsockname())
+
+    def broadcast(self, message):
         """
-        Create socket for desired host and port
+        Broadcast 'message' to all connected users
         """
-        print("Connecting to port:", port)
+        for reader, writer in self.connections.values():
+            writer.write((message + "\n").encode("utf-8"))
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        try:
-            sock.bind((host, port))
-        except socket.error:
-            print("Bind failed.")
-        # (backlog) specifies the number of unaccepted connections that the
-        # system will allow before refusing new connections
-        sock.listen(5)
-        newsocket, fromaddr = sock.accept()
-        print("Accepted connection with address: ")
-        # print("Sock fileno: ", sock.fileno())
-        # print("Starting server")
-        # print("Host address: " + socket.gethostname())
-        # print("Sock address: " + sock.getsockname()[0])
-        try:
-            connstream = ssl.wrap_socket(newsocket, server_side=True, certfile="cert.pem")
-            print("Socket succeeded")
-        except socket.error:
-            print("SSL wrap failed")
+    @asyncio.coroutine
+    def prompt_username(self, reader, writer):
         while True:
-            data = connstream.recv(1024)
-            if data:
-                print("data recieved: " + str(data))
+            writer.write("Enter username: ".encode("utf-8"))
+            data = (yield from reader.readline()).decode("utf-8")
+            if not data:
+                return None
+            username = data.strip()
+            if username and username not in self.connections:
+                self.connections[username] = (reader, writer)
+                return username
+            writer.write("Sorry, that username is taken.\n".encode("utf-8"))
 
-    def __init__(self, host, port):
-        threading.Thread.__init__(self)
-        self.host = host
-        self.port = port
-        print("[+] New thread started for " + host + ":" + str(port))
-        connect_to_port(host, port)
+    @asyncio.coroutine
+    def handle_connection(self, username, reader):
+        while True:
+            data = (yield from reader.readline()).decode("utf-8")
+            if not data:
+                del self.connections[username]
+                return None
+            self.broadcast(username + ": " + data.strip())
 
-    def run(self):    
-        print("Running")
+    @asyncio.coroutine
+    def accept_connection(self, reader, writer):
+        writer.write(("Welcome to " + self.server_name + "\n").encode("utf-8"))
+        username = (yield from self.prompt_username(reader, writer))
+        if username is not None:
+            self.broadcast("User %r has joined the room" % (username,))
+            yield from self.handle_connection(username, reader)
+            self.broadcast("User %r has left the room" % (username,))
+        yield from writer.drain()
 
-    
-
-
-HOST = "localhost"
-ALICE_PORT = 9001
-BOB_PORT = 9002
-
-def connect_to_port(host, port):
-    """
-    Create socket for desired host and port
-    """
-    print("Connecting to port:", port)
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    try:
-        sock.bind((host, port))
-    except socket.error:
-        print("Bind failed.")
-    # (backlog) specifies the number of unaccepted connections that the
-    # system will allow before refusing new connections
-    sock.listen(5)
-    newsocket, fromaddr = sock.accept()
-    print("Accepted connection with address: ")
-    # print("Sock fileno: ", sock.fileno())
-    # print("Starting server")
-    # print("Host address: " + socket.gethostname())
-    # print("Sock address: " + sock.getsockname()[0])
-    try:
-        connstream = ssl.wrap_socket(newsocket, server_side=True, certfile="cert.pem")
-        print("Socket succeeded")
-    except socket.error:
-        print("SSL wrap failed")
-    while True:
-        data = connstream.recv(1024)
-        if data:
-            print("data recieved: " + str(data))
-
-def start_server():
-    """
-    Create sockets required for server
-    """
-    # _thread.start_new_thread(connect_to_port(HOST, ALICE_PORT))
-    # _thread.start_new_thread(connect_to_port(HOST, BOB_PORT))
-
-    thread1 = ClientThread(HOST, ALICE_PORT)
-    thread2 = ClientThread(HOST, BOB_PORT)
-    thread1.start()
-    thread2.start()
-
-
-    # alice_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #socket.socket()
-    # try:
-    #     alice_sock.bind((HOST, ALICE_PORT))
-    # except socket.error:
-    #     print("Bind failed.")
-    # # (backlog) specifies the number of unaccepted connections that the
-    # # system will allow before refusing new connections
-    # alice_sock.listen(5)
-    # newsocket, fromaddr = alice_sock.accept()
-    # print("Accepted connection with address: ")
-
-    # print("Sock fileno: ", alice_sock.fileno())
-    # print("Starting server")
-    # print("Host address: " + socket.gethostname())
-    # print("Sock address: " + alice_sock.getsockname()[0])
-
-    # def do_something(connstream, data):
-    #     print("do_something:", data)
-    #     return False
-
-    # def deal_with_client(connstream):
-    #     data = connstream.read()
-    #     while data:
-    #         if not do_something(connstream, data):
-    #             break
-    #         data = connstream.read()
-
-    # while True:
-    #     newsocket, fromaddr = alice_sock.accept()
-    #     connstream = ssl.wrap_socket(newsocket, server_side=True, certfile="cert.pem")
-        
-        
-    #     try:
-    #         deal_with_client(connstream)
-    #     finally:
-    #         print("Finally?")
-    #         # connstream.shutdown(socket.SHUT_RDWR)
-    #         # connstream.close()
 
 def main():
-    """
-    Main function for server
-    """
-    print(ps.title("CITS3002 Server"))
 
+    loop = asyncio.get_event_loop()
+    server = MyServer("Miner Server", 4455, loop)
     try:
-        ip_address = socket.gethostbyname(HOST)
-        print("IP = " + ip_address)
-    except socket.gaierror:
-        print("Host name could not be resolved")
+        loop.run_forever()
+    finally:
+        loop.close()
 
-    print("Starting server at: ")
-    start_server()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

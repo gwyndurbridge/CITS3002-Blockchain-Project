@@ -1,58 +1,79 @@
-"""
-Client
-"""
-
-import socket
+import asyncio
 import ssl
-import PrintStyle as ps
 
-import pprint
+def watch_stdin():
+    msg = input()
+    return msg
 
-def connect_to_port(host, port):
-    """
-    Create socket with port number
-    """
-    print("Connecting to: " + host + ":" + str(port))
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ssl_sock = ssl.wrap_socket(sock, ca_certs="cert.pem", cert_reqs=ssl.CERT_REQUIRED, ssl_version=ssl.PROTOCOL_TLSv1_2)
-    ssl_sock.connect((host, port))
+class Client:
+    reader = None
+    writer = None
+    sockname = None
 
-    print(repr(ssl_sock.getpeername()))
-    print(ssl_sock.cipher())
-    print(pprint.pformat(ssl_sock.getpeercert()))
+    def __init__(self, host='localhost', port=4455):
+        self.host = host
+        self.port = port
 
-    ssl_sock.write("Hello world!".encode())
+    def send_msg(self, msg):
+        msg = '{}\n'.format(msg).encode()
+        self.writer.write(msg)
 
-    ssl_sock.write("Test".encode())
+    def close(self):
+        print('Closing.')
+        if self.writer:
+            self.send_msg('close()')
+        mainloop = asyncio.get_event_loop()
+        mainloop.stop()
 
-    # while True:
-        # ssl_sock.write("test".encode())
-        # data = ssl_sock.read()
-        # ssl_sock.close()
+    @asyncio.coroutine
+    def create_input(self):
+        while True:
+            mainloop = asyncio.get_event_loop()
+            future = mainloop.run_in_executor(None, watch_stdin)
+            input_message = yield from future
+            if input_message == 'close()' or not self.writer:
+                self.close()
+                break
+            elif input_message:
+                mainloop.call_soon_threadsafe(self.send_msg, input_message)
 
-    # if False: # from the Python 2.7.3 docs
-    #     # Set a simple HTTP request -- use httplib in actual code.
-    #     ssl_sock.write("""GET / HTTP/1.0\r
-    #     Host: www.verisign.com\n\n""")
+    @asyncio.coroutine
+    def connect(self):
+        print('Connecting...')
+        try:
+            sc = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile='selfsigned.cert')
+            reader, writer = yield from asyncio.open_connection(self.host, self.port, ssl=sc)
 
-    #     # Read a chunk of data.  Will not necessarily
-    #     # read all the data returned by the server.
-    #     data = ssl_sock.read()
-
-    #     # note that closing the SSLSocket will also close the underlying socket
-    #     ssl_sock.close()
+            # reader, writer = yield from asyncio.open_connection(self.host, self.port)
+            asyncio.async(self.create_input())
+            self.reader = reader
+            self.writer = writer
+            self.sockname = writer.get_extra_info('sockname')
+            while not reader.at_eof():
+                msg = yield from reader.readline()
+                if msg:
+                    print('{}'.format(msg.decode().strip()))
+            print('The server closed the connection, press <enter> to exit.')
+            self.writer = None
+        except ConnectionRefusedError as e:
+            print('Connection refused: {}'.format(e))
+            self.close()
 
 
 def main():
-    """
-    Main function for client
-    """
-    print(ps.title("CITS3002 Client"))
-    port = input("Please enter the PORT number you wish to use: ")
-    if len(port) == 0:
-        port = 9001 # default port
-    connect_to_port("localhost", int(port))
+    loop = asyncio.get_event_loop()
+    client = Client()
+    asyncio.async(asyncio.async(client.connect()))
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        # Raising and going through a keyboard interrupt will not interrupt the Input
+        # So, do not stop using ctrl-c, the program will deadlock waiting for watch_stdin()
+        print('Got keyboard interrupt <ctrl-C>, please send "close()" to exit.')
+        loop.run_forever()
+    loop.close()
+
 
 if __name__ == '__main__':
     main()
