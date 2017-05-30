@@ -7,7 +7,7 @@ def generateTransaction(sender,reciever,value,payment,change):
 	senderPrivate = getPrivateKey(sender)
 	transaction = {'sender':sender, 'receiver':reciever, 'value':value, 'payment': payment, 'change':change,'time':time.ctime()}
 	transactionDump = json.dumps(transaction)
-	print(transactionDump)
+	#print(transactionDump)
 	signature = getSign(transactionDump,senderPrivate);
 	fullTransaction = {'transaction':transaction,'signature':signature}
 	return json.dumps(fullTransaction)
