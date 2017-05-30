@@ -2,7 +2,6 @@ import os.path, json, time
 import minerFunctions as mf
 import minerUtil as ut
 import transactionMaker as tm
-import keyTest as kt
 
 class Miner():
     def __init__(self):
@@ -33,7 +32,7 @@ class Miner():
         head = mf.generateBlockHeader(difficulty, transactions)
         head = mf.generateNonce(head)
 
-        mf.addToBlockchain(head, body)
+        return mf.addToBlockchain(head, body)
 
 # take hash as input to check against
 def checkNonce(header):
@@ -61,10 +60,13 @@ def checkNonce(header):
 """example"""
 
 #kt.test_PEMcreation()
-'''t1 = tm.generateTransaction('andy','testy',50,30,10)
+
+'''
+import keyTest as kt
+t1 = tm.generateTransaction('andy','testy',50,30,10)
 
 transactions = [t1]
 
 miner = Miner()
 miner.setDifficulty(31, True)
-miner.run([])'''
+print(miner.run([]))'''

@@ -129,3 +129,5 @@ def addToBlockchain(header, body):
         blockchain.append(block)
         blockchainFile.seek(0)
         blockchainFile.write(json.dumps(blockchain))
+
+        return json.dumps(blockchain)

@@ -49,6 +49,7 @@
                           b = bool, whether should always use d, or auto-update
         run(t)
             where    :    t = list of json string transactions
+            returns  :    json string blockchain
             
         Only the header of the block is hashed to find the correct nonce, so the merkle root is what actually
         ties the transactions to the block and makes sure they were not changed.
