@@ -5,6 +5,18 @@ https://docs.python.org/3/library/multiprocessing.html#module-multiprocessing
 http://www.giantflyingsaucer.com/blog/?p=5557
 """
 
+"""
+https://stackoverflow.com/questions/32889527/is-there-a-way-to-use-asyncio-queue-in-multiple-threads
+Asyncio.Queue is not thread safe :/
+"""
+
+"""
+https://docs.python.org/3/library/asyncio-stream.html
+Using ayncio coroutines to create a server
+"""
+
+
+
 import asyncio
 import multiprocessing
 import os
@@ -13,17 +25,28 @@ from time import sleep
 
 port = 9000
 
+ 
+@asyncio.coroutine
+def check_queue(task_name, work_queue):
+    while not work_queue.empty():
+        queue_item = yield from work_queue.get()
+        print('{0} grabbed item: {1}'.format(task_name, queue_item))
+        yield from asyncio.sleep(0.5)
+
 def startServer():
     print("Starting as server")
-    q = multiprocessing.Queue()
+    # q = multiprocessing.Queue()
+
+    q = asyncio.Queue()
+
     data = [5, 10, 13, -1]
     assert os.path.isfile('selfsigned.cert')
     server_process = multiprocessing.Process(target=server, name='server',args=(data, q))
     server_process.start()
     print("process name: ", server_process.name)
-    queue_process = multiprocessing.Process(target=myqueue, name='myqueue',args=(q,))
-    queue_process.start()
-    print("process name: ", queue_process.name)
+    # queue_process = multiprocessing.Process(target=myqueue, name='myqueue',args=(q,))
+    # queue_process.start()
+    # print("process name: ", queue_process.name)
     
         
 def startClient():
@@ -105,21 +128,21 @@ def client():
     loop.run_until_complete(tcp_echo_client(loop))
     loop.close()
 
-def myqueue(q):
+# def myqueue(q):
 
-    @asyncio.coroutine
-    def check_queue(q, loop):
-        """
-        check queue
-        """
-        print("QUEUE:", q.get())
+#     @asyncio.coroutine
+#     def check_queue(q, loop):
+#         """
+#         check queue
+#         """
+#         print("QUEUE:", q.get())
 
-    loop = asyncio.get_event_loop()
-    # coro = asyncio.check_queue(check_queue(q, loop))
-    loop.run_forever(check_queue(q, loop))
+#     loop = asyncio.get_event_loop()
+#     # coro = asyncio.check_queue(check_queue(q, loop))
+#     loop.run_forever(check_queue(q, loop))
 
-    print("Starting queue checker...")
-    loop.run_forever()
+#     print("Starting queue checker...")
+#     loop.run_forever()
 
 if __name__ == '__main__':
     main()
