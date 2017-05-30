@@ -42,9 +42,9 @@ class Wallet:
 
 	# loads blockchain from file on startup
 	def loadBlockchain(self):
-		with open('json/andyBlockchain.json', 'a') as temp:
+		with open('json/'+self.name+'Blockchain.json', 'a') as temp:
 			pass
-		with open('json/andyBlockchain.json', 'r+') as blockchainFile:
+		with open('json/'+self.name+'Blockchain.json', 'r+') as blockchainFile:
 			blockchain = blockchainFile.read()
 			if blockchain == '' or blockchain == '\n':
 				#if blockchain is empty create empty list to hold chain. Balance is 0 by default
@@ -72,10 +72,10 @@ class Wallet:
 	# takes blockchain json, updates balances, pending transactions and local blockchain file
 	def update(self, newBlockchain):
 		# Create blockchain file if it doesnt already exist
-		with open('json/andyBlockchain.json', 'a') as temp:
+		with open('json/'+self.name+'Blockchain.json', 'a') as temp:
 			pass
 
-		with open('json/andyBlockchain.json', 'r+') as blockchainFile:
+		with open('json/'+self.name+'Blockchain.json', 'r+') as blockchainFile:
 			# create list of hashes of pending transactions
 			pendingKeys = []
 			for key in self.pendingTrans:
@@ -155,7 +155,7 @@ class Wallet:
 		mineman.setDifficulty(10, True)
 		mineman.run([])
 
-		copyfile("json/minerBlockchain.json", "json/andyBlockchain.json")
+		copyfile("json/minerBlockchain.json", 'json/'+self.name+'Blockchain.json')
 
 		t1 = self.generateTransaction('testio',20,15,3)
 		print("availablefunds: ", self.numAvailableFunds, "  actualBalance: ", self.numActualBalance)
@@ -168,6 +168,5 @@ class Wallet:
 			self.update(newchainOpen)
 
 		print("availablefunds: ", self.numAvailableFunds, "  actualBalance: ", self.numActualBalance)
-
 #andy = Wallet('andy')
 #andy.test()
