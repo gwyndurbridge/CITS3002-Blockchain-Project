@@ -1,5 +1,4 @@
 import rsa
-import hashlib
 
 def generateKeys():
 	return rsa.newkeys(2048)
