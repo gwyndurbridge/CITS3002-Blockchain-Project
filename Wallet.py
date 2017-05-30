@@ -103,18 +103,18 @@ class Wallet:
 					for key in blockBody:
 						# check if you're included in any transactions
 						transaction = json.loads(json.loads(blockBody[key])['transaction'])
-
-						if key in pendingKeys:
-							# if you are the sender pay 'value' and regain 'change' and move it from pending to past
-							actualBalanceChange += transaction['change'] - transaction['value']
-							self.pendingTrans.pop(key)
-						elif transaction['sender'] == self.name:
-							# if you are a sender but you dont remember sending it check past transactions
-							raise Exception('found unexpected payment')
-						elif transaction['receiver'] == self.name:
-							# if you are the receiver gain payment
-							actualBalanceChange += transaction['payment']
-							availableFundsChange += transaction['payment']
+						if transactionMaker.checkSign(blockBody[key]):
+							if key in pendingKeys:
+								# if you are the sender pay 'value' and regain 'change' and move it from pending to past
+								actualBalanceChange += transaction['change'] - transaction['value']
+								self.pendingTrans.pop(key)
+							elif transaction['sender'] == self.name:
+								# if you are a sender but you dont remember sending it check past transactions
+								raise Exception('found unexpected payment')
+							elif transaction['receiver'] == self.name:
+								# if you are the receiver gain payment
+								actualBalanceChange += transaction['payment']
+								availableFundsChange += transaction['payment']
 
 				self.numActualBalance += actualBalanceChange
 				self.numAvailableFunds += availableFundsChange
@@ -133,4 +133,3 @@ class Wallet:
 			return self.pendingTrans[failedHash]
 		# if it was not in there return 0 so client knows theres nothing to resend
 		return 0
-

@@ -1,4 +1,5 @@
 import json, random, time, sys
+import transactionMaker as tm
 import minerUtil as ut
 
 random.seed()
@@ -51,8 +52,9 @@ def generateBlockBody(transactions):
     dict = {}
 
     for transaction in transactions:
-        digest = ut.hashInput(transaction)
-        dict[digest] = transaction
+		if tm.checkSign(transaction):
+	        digest = ut.hashInput(transaction)
+	        dict[digest] = transaction
 
     return dict
 
