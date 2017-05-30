@@ -6,14 +6,14 @@ def generateKeys():
 #Should use senders private key for signature creation
 def generateSign(message,key):
 	byteMessage = message.encode('utf8')
-	print(rsa.sign(byteMessage, key, 'SHA-256'))
+	#print(rsa.sign(byteMessage, key, 'SHA-256'))
 	return int.from_bytes(rsa.sign(byteMessage, key, 'SHA-256'),byteorder='little')
 #Should use senders public key to verify signature
 def verifyMessage(message,intSignature,key):
 	try:
 		byteMessage = message.encode('utf8')
 		signature = intSignature.to_bytes(256,byteorder='little')
-		print(signature)
+		#print(signature)
 		rsa.verify(byteMessage,signature,key)
 		return True
 	except Exception as e:

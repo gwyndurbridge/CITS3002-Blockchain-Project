@@ -12,7 +12,7 @@ def setDefaults(diff, use):
     useDefaultDifficulty = use
 
 def calculateDifficulty():
-    with open('json/blockchain.json', 'r+') as blockchainFile:
+    with open('json/minerBlockchain.json', 'r+') as blockchainFile:
         blockchain = blockchainFile.read()
         #return default if its the first one
         if blockchain == '' or blockchain == '\n':
@@ -40,21 +40,25 @@ def createCoinbaseTransaction(transactions):
     fee = 0
     for transaction in transactions:
         transaction = json.loads(transaction)
-        transaction = json.loads(transaction['transaction'])
+        transaction = transaction['transaction']
         fee += transaction['value'] - transaction['payment'] - transaction['change']
 
-    coinbaseTransaction = json.dumps({'sender' : None ,'receiver' : ut.getMinerKey(), 'value' : fee+generation, 'payment' : fee+generation, 'change' : 0, 'time' : time.ctime()})
+    coinbaseTransaction = {'sender' : None ,'receiver' : ut.getMinerKey(), 'value' : fee+generation, 'payment' : fee+generation, 'change' : 0, 'time' : time.ctime()}
     coinbaseTransactionFull = {'transaction' : coinbaseTransaction, 'signature' : None}
 
     return json.dumps(coinbaseTransactionFull)
 
 def generateBlockBody(transactions):
     dict = {}
-
     for transaction in transactions:
-		if tm.checkSign(transaction):
-	        digest = ut.hashInput(transaction)
-	        dict[digest] = transaction
+        #if sender is none, then its the coinbase transaction to dont worry about it
+        if json.loads(transaction)['transaction']['sender'] == None:
+            digest = ut.hashInput(transaction)
+            dict[digest] = transaction
+        #if its not the coinbase transcation make sure the signature matches the transaction
+        elif tm.checkSign(transaction):
+            digest = ut.hashInput(transaction)
+            dict[digest] = transaction
 
     return dict
 
@@ -112,7 +116,7 @@ def addToBlockchain(header, body):
 
     block = {'header':header, 'body':body}
 
-    with open('json/blockchain.json', 'r+') as blockchainFile:
+    with open('json/minerBlockchain.json', 'r+') as blockchainFile:
         blockchain = blockchainFile.read()
         # if the chain is empty put the block in an array first
         if blockchain == '' or blockchain == '\n':

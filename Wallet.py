@@ -1,9 +1,10 @@
 import minerUtil
+import miner
 import transactionMaker,json, time
 import os
+from shutil import copyfile
 
 class Wallet:
-
 	def __init__(self,givenName):
 		self.name = givenName
 		self.pendingTrans = {} #should be in the form hash:value
@@ -28,23 +29,27 @@ class Wallet:
 
 	def generateTransaction(self,receiver,value,payment,change):
 		#will use client.py to send transaction
-		transactionDump = transactionMaker.generateTransaction(self.name,receiver,value,payment,change)
-		transactionHash = minerUtil.hashInput(transactionDump)
-		transactionLoss = value - change
-		self.pendingTrans[transactionHash] = transactionLoss
-		self.numAvailableFunds -= transactionLoss
-		return transactionDump
+		if value <= self.numAvailableFunds:
+			transactionDump = transactionMaker.generateTransaction(self.name,receiver,value,payment,change)
+			transactionHash = minerUtil.hashInput(transactionDump)
+			transactionLoss = value - change
+			self.pendingTrans[transactionHash] = transactionLoss
+			self.numAvailableFunds -= transactionLoss
+			return transactionDump
+		else:
+			print("Not enough funds")
+			return -1
 
 	# loads blockchain from file on startup
 	def loadBlockchain(self):
-		with open('json/blockchain.json', 'a') as temp:
+		with open('json/'+self.name+'Blockchain.json', 'a') as temp:
 			pass
-		with open('json/blockchain.json', 'r+') as blockchainFile:
+		with open('json/'+self.name+'Blockchain.json', 'r+') as blockchainFile:
 			blockchain = blockchainFile.read()
 			if blockchain == '' or blockchain == '\n':
 				#if blockchain is empty create empty list to hold chain. Balance is 0 by default
-				blockchain.seek(0)
-				blockchain.write(json.dumps([]))
+				blockchainFile.seek(0)
+				blockchainFile.write(json.dumps([]))
 			else:
 				actualBalanceChange = 0
 				availableFundsChange = 0
@@ -52,7 +57,7 @@ class Wallet:
 				for block in blockchainOpen:
 					body = block['body']
 					for key in body:
-						transaction = json.loads(json.loads(body[key])['transaction'])
+						transaction = json.loads(body[key])['transaction']
 						if transaction['sender'] == self.name:
 							# if you are the sender lose the payment value and get change
 							actualBalanceChange += transaction['change'] - transaction['value']
@@ -67,10 +72,10 @@ class Wallet:
 	# takes blockchain json, updates balances, pending transactions and local blockchain file
 	def update(self, newBlockchain):
 		# Create blockchain file if it doesnt already exist
-		with open('json/blockchain.json', 'a') as temp:
+		with open('json/'+self.name+'Blockchain.json', 'a') as temp:
 			pass
 
-		with open('json/blockchain.json', 'r+') as blockchainFile:
+		with open('json/'+self.name+'Blockchain.json', 'r+') as blockchainFile:
 			# create list of hashes of pending transactions
 			pendingKeys = []
 			for key in self.pendingTrans:
@@ -91,6 +96,15 @@ class Wallet:
 				if len(newBlockchainOpen) < len(oldBlockchainOpen):
 					raise Exception('receiving older blockchain - reject')
 
+				#make sure all blocks are valid
+				for block in newBlockchainOpen:
+					blockHeader = block['header']
+
+					#if the block is not valid then dont update
+					if not miner.checkNonce(blockHeader):
+						print("blockchain received not valid")
+						return -1
+
 				numBlocksMissing = len(newBlockchainOpen) - len(oldBlockchainOpen)
 
 				# amount actualBalance and availableFunds need to be updated by
@@ -102,14 +116,14 @@ class Wallet:
 					blockBody = newBlockchainOpen[i]['body']
 					for key in blockBody:
 						# check if you're included in any transactions
-						transaction = json.loads(json.loads(blockBody[key])['transaction'])
-						if transactionMaker.checkSign(blockBody[key]):
+						transaction = json.loads(blockBody[key])['transaction']
+						if transaction['sender'] == None or transactionMaker.checkSign(blockBody[key]):
 							if key in pendingKeys:
 								# if you are the sender pay 'value' and regain 'change' and move it from pending to past
 								actualBalanceChange += transaction['change'] - transaction['value']
 								self.pendingTrans.pop(key)
 							elif transaction['sender'] == self.name:
-								# if you are a sender but you dont remember sending it check past transactions
+								# if you are a sender but you dont remember sending it check past transactions. Future work do something about this
 								raise Exception('found unexpected payment')
 							elif transaction['receiver'] == self.name:
 								# if you are the receiver gain payment
@@ -133,3 +147,26 @@ class Wallet:
 			return self.pendingTrans[failedHash]
 		# if it was not in there return 0 so client knows theres nothing to resend
 		return 0
+
+	def test(self):
+		print('test')
+		print("availablefunds: ", self.numAvailableFunds, "  actualBalance: ", self.numActualBalance)
+		mineman = miner.Miner()
+		mineman.setDifficulty(10, True)
+		mineman.run([])
+
+		copyfile("json/minerBlockchain.json", 'json/'+self.name+'Blockchain.json')
+
+		t1 = self.generateTransaction('testio',20,15,3)
+		print("availablefunds: ", self.numAvailableFunds, "  actualBalance: ", self.numActualBalance)
+
+		if t1 != -1:
+			mineman.run([t1])
+
+		with open('json/minerBlockchain.json', 'r') as newchain:
+			newchainOpen = newchain.read()
+			self.update(newchainOpen)
+
+		print("availablefunds: ", self.numAvailableFunds, "  actualBalance: ", self.numActualBalance)
+#andy = Wallet('andy')
+#andy.test()
