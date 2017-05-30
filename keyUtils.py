@@ -20,11 +20,11 @@ def verifyMessage(message,intSignature,key):
 	except Exception as e:
 		print('VERFICATION FAILED - Incorrect message')
 		return False
-#Should use recievers public key to encrypt
+#Should use recievers public key to encrypt - DEPRACATED for SSL
 def encryptMessage(message,key):
 	byteMessage = message.encode('utf8')
 	return rsa.encrypt(byteMessage,key)
-#Should use recievers private to dencrypt
+#Should use recievers private to dencrypt- DEPRACATED for SSL
 def decryptMessage(byteMessage,key):
 	try:
 		message = rsa.decrypt(byteMessage,key).decode('utf8')
