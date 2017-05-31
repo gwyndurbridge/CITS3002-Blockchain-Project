@@ -16,4 +16,3 @@ def title(input_string):
     output += input_string
     output += " " + RESET + MONEY_BAG + "\n"
     return output
-    
