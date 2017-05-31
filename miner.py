@@ -1,7 +1,9 @@
-import os.path, json, time
+import json
+import os.path
+
 import minerFunctions as mf
 import minerUtil as ut
-import transactionMaker as tm
+
 
 class Miner():
     def __init__(self):
@@ -16,9 +18,9 @@ class Miner():
         defaultDifficulty = self.defaultDifficulty
         useDefaultDifficulty = self.useDefaultDifficulty
 
-        #if there's no blockchain file, make one
+        # if there's no blockchain file, make one
         if not os.path.isfile('json/minerBlockchain.json'):
-            open('json/minerBlockchain.json','w+')
+            open('json/minerBlockchain.json', 'w+')
             difficulty = defaultDifficulty
         elif useDefaultDifficulty:
             difficulty = defaultDifficulty
@@ -33,6 +35,7 @@ class Miner():
         head = mf.generateNonce(head)
 
         return mf.addToBlockchain(head, body)
+
 
 # take hash as input to check against
 def checkNonce(header):
@@ -57,9 +60,10 @@ def checkNonce(header):
     # return False if not valid
     return False
 
+
 """example"""
 
-#kt.test_PEMcreation()
+# kt.test_PEMcreation()
 
 '''
 import keyTest as kt

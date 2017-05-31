@@ -1,4 +1,7 @@
-import socket, ssl, select
+import select
+import socket
+import ssl
+
 import printStyle as ps
 
 # Dictionary of all sock connections
@@ -6,6 +9,7 @@ import printStyle as ps
 # Object: Socket object
 socks = {}
 poll = select.poll()
+
 
 # http://stackoverflow.com/questions/17539859/how-to-create-multi-server-sockets-on-one-client-in-python
 
@@ -56,19 +60,22 @@ poll = select.poll()
 def sendTo(someone):
     return
 
+
 def sendToAll():
     return
+
 
 def addSocket(port):
     print("Adding socket to port: ", port)
     sock = socket.socket()
-    sock.bind(('',port))
+    sock.bind(('', port))
     sock.listen(5)
 
     socks[sock.fileno()] = sock
     # poll = select.poll()
     poll.register(sock)
     print("socket added?")
+
 
 def startServer():
     print("Starting server...")
@@ -83,22 +90,20 @@ def startServer():
             if not do_something(connstream, data):
                 break
             data = connstream.read()
-    
+
     print("did i get here?")
-
-
 
     while True:
         print("hi")
-        #fd, event = poll.poll() # Optional timeout parameter in seconds
+        # fd, event = poll.poll() # Optional timeout parameter in seconds
         fd, event = poll.poll()[0]
         print("fd: ", fd)
         sock = socks[fd]
-        
+
         newsocket, fromaddr = sock.accept()
         # stuff = sock.recv(1024) # Do stuff
         # print("stuff?: ", stuff)
-        connstream = ssl.wrap_socket(sock,server_side=True,certfile="cert.pem")
+        connstream = ssl.wrap_socket(sock, server_side=True, certfile="cert.pem")
         try:
             print("dealing with stream")
             deal_with_client(connstream)
@@ -107,14 +112,16 @@ def startServer():
             # connstream.shutdown(socket.SHUT_RDWR)
             # connstream.close()
 
+
 def main():
     # Welcome message
-    print("\n" + ps.moneyBag + ps.bold + ps.purple + "  CITS3002 SERVER " + ps.reset + ps.moneyBag + "\n")
-    
+    print("\n" + ps.MONEY_BAG + ps.BOLD + ps.PURPLE + "  CITS3002 SERVER " + ps.RESET + ps.MONEY_BAG + "\n")
+
     # startServer()
 
     addSocket(9999)
     startServer()
+
 
 if __name__ == '__main__':
     main()
