@@ -4,6 +4,21 @@ import ssl
 
 import printStyle as ps
 
+'''
+init(name or pem file directory)
+getBal() returns actual/available balance - split in two if you want
+sendCoins(recipient, amountAvail, amountSent, amountChange) returns True if it was sent successfuly (maybe?)
+        amountAvail = trans $$$ input
+        amountSent = recipient $$$ received
+        amountChange = sender $$$ received back
+        you shouldn't need the sender's name as that should come from init()
+        I'm happy to format this differently (i.e. as a dict or a json.dump() or a json) if you want
+            but the values being inputted shouldn't need to change
+
+I don't think I'll need to get anything else from the wallet.
+Maybe a transaction history? that'd probably be an extension task if you want to implement it
+    just pass it back as a list of strings (i.e. json.dump()?) that I can run through to print out
+'''
 
 def createSocket(host, port):
     print("Creating socket with: " + host + ":", port)
