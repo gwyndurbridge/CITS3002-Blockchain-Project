@@ -1,5 +1,13 @@
 # CITS3002-Blockchain-Project
 
+# Setup
+####Generating a set of keys for users
+			Run "python3 keyGen.py [NAMES]"
+			Copy all the files in "/certs" to all the "/certs" folder on each machine
+
+####Generating SSL certificate
+###			FOR GWYN
+
 # Wallet
 ####Transaction (dict with these keys)
     - 'transaction':dict
@@ -10,16 +18,16 @@
         - 'change': int
         - 'time':ctime
     - 'signature':string
-    
+
 ####To use
     - Create instance of Wallet class with user name as the argument
         e.g. joe = Wallet('Joe')
     - Create transaction with generateTransaction()
         returns json string transaction
     - Pass generated transaction to client
-    - Use update() when new blockchain is received 
+    - Use update() when new blockchain is received
     - Use end() before closing wallet to save pending transactions
- 
+
 ####Class Functions
     - end()
     - readPending()
@@ -50,7 +58,7 @@
         run(t)
             where    :    t = list of json string transactions
             returns  :    json string blockchain
-            
+
         Only the header of the block is hashed to find the correct nonce, so the merkle root is what actually
         ties the transactions to the block and makes sure they were not changed.
         If we are not using a merkle root the entire block (header and body) should be hashed to tie the transcations
