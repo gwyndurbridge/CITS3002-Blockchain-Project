@@ -1,5 +1,12 @@
 # CITS3002-Blockchain-Project
 
+# Members
+
+- Ishraq Bari (21507301)
+- Daniel Neil (21487694)
+- Gwyn Durbridge (21513935)
+- Kevin Kuek (21307006)
+
 # Wallet
 ####Transaction (dict with these keys)
     - 'transaction':dict
