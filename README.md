@@ -1,11 +1,21 @@
 # CITS3002-Blockchain-Project
 
+<<<<<<< HEAD
 # Members
 
 - Ishraq Bari (21507301)
 - Daniel Neil (21487694)
 - Gwyn Durbridge (21513935)
 - Kevin Kuek (21307006)
+=======
+# Setup
+####Generating a set of keys for users
+			Run "python3 keyGen.py [NAMES]"
+			Copy all the files in "/certs" to all the "/certs" folder on each machine
+
+####Generating SSL certificate
+###			FOR GWYN
+>>>>>>> fa0bc42c48f711e21b66e3265a800d1fade15978
 
 # Wallet
 ####Transaction (dict with these keys)
@@ -17,16 +27,16 @@
         - 'change': int
         - 'time':ctime
     - 'signature':string
-    
+
 ####To use
     - Create instance of Wallet class with user name as the argument
         e.g. joe = Wallet('Joe')
     - Create transaction with generateTransaction()
         returns json string transaction
     - Pass generated transaction to client
-    - Use update() when new blockchain is received 
+    - Use update() when new blockchain is received
     - Use end() before closing wallet to save pending transactions
- 
+
 ####Class Functions
     - end()
     - readPending()
@@ -57,7 +67,7 @@
         run(t)
             where    :    t = list of json string transactions
             returns  :    json string blockchain
-            
+
         Only the header of the block is hashed to find the correct nonce, so the merkle root is what actually
         ties the transactions to the block and makes sure they were not changed.
         If we are not using a merkle root the entire block (header and body) should be hashed to tie the transcations
