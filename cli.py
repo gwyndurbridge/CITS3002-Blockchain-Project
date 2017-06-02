@@ -3,13 +3,12 @@ import re
 
 from client import Client
 
-nameCol = "0;0;0"
-base = "0"
-green = "0;32;0"
-purple = "0;35;0"
-orange = "0;33;0"
-red = "0;31;0"
-blue = "0;34;0"
+blank = "\033[0m"
+green = "\033[0;32m"
+purple = "\033[0;35m"
+orange = "\033[0;33m"
+red = "\033[0;31m"
+blue = "\033[0;34m"
 testTrans = [{'sender': 'Andy', 'receiver': 'jerry', 'value': 50, 'payment': 40, 'change': 5,
               'signature': 'u4h298h4g92'},
              {'sender': 'James', 'receiver': 'Billy', 'value': 35, 'payment': 10, 'change': 15,
@@ -34,9 +33,14 @@ def helpMiner():
     cont = False
     while not cont:
         print("-===HELP===-")
-        print("	testTransaction:- create and process a transaction")
-        print("	preBuiltTrans:- process a pre-made transaction")
-        print("	exit will return you to the Miner/Wallet selection")
+        print(" Function '%s %s %s' will respond with this" % (green, 'help', blank))
+        print(" Function '%s %s %s' will respond with your username" % (green, 'whoami', blank))
+        print(" Function '%s %s %s' will respond with the current difficulty setting of the miner" % (
+            purple, 'getDifficulty', blank))
+        print(" Function '%s %s %s' will allow you to change the difficulty setting of the miner" % (
+            orange, 'setDifficulty', blank))
+        print(" Function '%s %s %s' will return you to the wallet/miner selection screen" % (
+            red, 'exit', blank))
         cont = input("  press any key to continue: ")
 
 
@@ -44,11 +48,11 @@ def minerCLI():
     act = Client('miner')
     while True:
         print("Available Functions: ")
-        print("1. \x1b[%sm %19s \x1b[0m" % (green, 'help;'))
-        print("2. \x1b[%sm %19s \x1b[0m" % (green, 'whoami'))
-        print("3. \x1b[%sm %19s \x1b[0m" % (purple, 'getDifficulty;'))
-        print("4. \x1b[%sm %19s \x1b[0m" % (orange, 'setDifficulty;'))
-        print("5. \x1b[%sm %19s \x1b[0m" % (red, 'exit;'))
+        print("1. %s %19s %s" % (green, 'help;', blank))
+        print("2. %s %19s %s" % (green, 'whoami', blank))
+        print("3. %s %19s %s" % (purple, 'getDifficulty;', blank))
+        print("4. %s %19s %s" % (orange, 'setDifficulty;', blank))
+        print("5. %s %19s %s" % (red, 'exit;', blank))
         var = input("Please choose from the above functions: ")
         if var == "help" or var == '1':
             helpMiner()
@@ -71,7 +75,7 @@ def minerCLI():
             if newdiff != diff:
                 act.set_miner_difficulty(newdiff)
         elif var == "whoami" or var == '2':
-            print("\x1b[%smYou are: %20s\x1b[0m" % (blue, 'miner'))
+            print("%sYou are: %20s%s" % (blue, 'miner', blank))
         elif var == "exit" or var == '5' or var.strip() == 'break' or var.strip() == '':
             break
         else:
@@ -82,14 +86,14 @@ def helpWallet():
     cont = False
     while not cont:
         print("-===HELP===-")
-        print(" Function '\x1b[%sm %s \x1b[0m' will respond with this" % (green, 'help'))
-        print(" Function '\x1b[%sm %s \x1b[0m' will respond with your username" % (green, 'whoami'))
-        print(" Function '\x1b[%sm %s \x1b[0m' will inform you of your current available and actual funds" % (
-            purple, 'checkBalance'))
-        print(" Function '\x1b[%sm %s \x1b[0m' will create a transaction to a person of your choosing" % (
-            orange, 'sendCoins'))
-        print(" Function '\x1b[%sm %s \x1b[0m' will return you to the wallet/miner selection screen" % (
-            red, 'exit'))
+        print(" Function '%s %s %s' will respond with this" % (green, 'help', blank))
+        print(" Function '%s %s %s' will respond with your username" % (green, 'whoami', blank))
+        print(" Function '%s %s %s' will inform you of your current available and actual funds" % (
+            purple, 'checkBalance', blank))
+        print(" Function '%s %s %s' will create a transaction to a person of your choosing" % (
+            orange, 'sendCoins', blank))
+        print(" Function '%s %s %s' will return you to the wallet/miner selection screen" % (
+            red, 'exit', blank))
         cont = input("  press any key to continue: ")
 
 
@@ -97,11 +101,11 @@ def walletCLI(init, fname):
     act = Client(init)
     while True:
         print("Available Functions: ")
-        print("1. \x1b[%sm %17s \x1b[0m" % (green, 'help;'))
-        print("2. \x1b[%sm %17s \x1b[0m" % (green, 'whoami'))
-        print("3. \x1b[%sm %17s \x1b[0m" % (purple, 'checkBalance;'))
-        print("4. \x1b[%sm %17s \x1b[0m" % (orange, 'sendCoins;'))
-        print("5. \x1b[%sm %17s \x1b[0m" % (red, 'exit;'))
+        print("1. %s %17s %s" % (green, 'help;', blank))
+        print("2. %s %17s %s" % (green, 'whoami', blank))
+        print("3. %s %17s %s" % (purple, 'checkBalance;', blank))
+        print("4. %s %17s %s" % (orange, 'sendCoins;', blank))
+        print("5. %s %17s %s" % (red, 'exit;', blank))
         var = input("Please choose from the above functions: ")
         print("")
         if var == "help" or var == "1":
@@ -109,14 +113,14 @@ def walletCLI(init, fname):
             print("")
         elif var == "checkBalance" or var == "3":
             print("Checking your balance")
-            print("Account: \x1b[%sm %10s \x1b[0m" % (purple, init))
+            print("Account: %s %10s %s" % (purple, init, blank))
             x, y = act.check_balance()
             print("Total: %13s \nAvailable: %9s\n" % (x, y))
         elif var == "sendCoins" or var == "4":
             print("Collecting relevant information")
             for name in fname:
                 if name != init or name != 'miner':
-                    print("\x1b[%sm name | %10s \x1b[0m" % (blue, name))
+                    print("%s name | %10s %s" % (blue, name, blank))
             recipient = input("Please enter the recipient: ")
             if recipient.strip() == 'break' or recipient.strip() == '':
                 continue
@@ -124,7 +128,7 @@ def walletCLI(init, fname):
             while not (recipient in fname) & (recipient != init):
                 for name in fname:
                     if name != init:
-                        print("\x1b[%smname: %s\x1b[0m" % (blue, name))
+                        print("%sname: %s%s" % (blue, name, blank))
                 recipient = input("Please enter one of the names listed above for the recipient: ")
                 if recipient.strip() == 'break' or recipient.strip() == '':
                     break
@@ -186,7 +190,7 @@ def walletCLI(init, fname):
                 % (value, payment, recipient, minerFee, change))
             print("Success: %s\n" % act.send_transaction(recipient, value, payment, change))
         elif var == "whoami" or var == "2":
-            print("\x1b[%sm You are: %20s \x1b[0m\n" % (blue, init))
+            print("\x1b[%s You are: %20s %s\n" % (blue, init, blank))
         elif var == "exit" or var == "5" or var.strip() == 'break' or var.strip() == '':
             break
         else:
@@ -201,7 +205,7 @@ def main():
           " to enter that function")
     while True:
         start = input(
-            "Would you like to start a \x1b[%smminer\x1b[0m or a \x1b[%smwallet\x1b[0m? " % (purple, green))
+            "Would you like to start a %sminer%s or a %swallet%s? " % (purple, blank, green, blank))
         if start == "wallet":
             print("Known accounts: ")
             f = []
@@ -213,7 +217,7 @@ def main():
                     if 'miner' not in a:
                         f += a
             for name in f:
-                print("\x1b[%sm name | %10s \x1b[0m" % (blue, name))
+                print("%s name | %10s %s" % (blue, name, blank))
             init = input("Who are you signing in as? ")
             while init not in f:
                 init = input("Please choose one of the names above: ")
