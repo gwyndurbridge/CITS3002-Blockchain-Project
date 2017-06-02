@@ -5,7 +5,7 @@ import transactionMaker as tm
 
 class Miner():
     def __init__(self):
-        self.defaultDifficulty = 35
+        self.defaultDifficulty = 10
         self.useDefaultDifficulty = False
 
     def setDifficulty(self, difficulty, alwaysUse):
@@ -16,14 +16,19 @@ class Miner():
         defaultDifficulty = self.defaultDifficulty
         useDefaultDifficulty = self.useDefaultDifficulty
 
-        #if there's no blockchain file, make one
+        #if there's no blockchain file, make one and use default difficulty
         if not os.path.isfile('json/minerBlockchain.json'):
             open('json/minerBlockchain.json','w+')
             difficulty = defaultDifficulty
-        elif useDefaultDifficulty:
-            difficulty = defaultDifficulty
         else:
-            difficulty = mf.calculateDifficulty()
+            with open('json/minerBlockchain.json','r') as blockchainFile:
+                blockchain = blockchainFile.read()
+                blockchain = json.loads(blockchain)
+                if len(blockchain) < 2 or useDefaultDifficulty:
+                    difficulty = defaultDifficulty
+                else:
+                #calculate difficulty if you don't have to use the default
+                    difficulty = mf.calculateDifficulty(defaultDifficulty)
 
         coinbaseTransaction = mf.createCoinbaseTransaction(transactions)
         transactions.append(coinbaseTransaction)
@@ -61,12 +66,12 @@ def checkNonce(header):
 
 #kt.test_PEMcreation()
 
-'''
-import keyTest as kt
-t1 = tm.generateTransaction('andy','testy',50,30,10)
+#import keyTest as kt
+
+'''t1 = tm.generateTransaction('andy','testy',50,30,10)
 
 transactions = [t1]
 
 miner = Miner()
-miner.setDifficulty(31, True)
-print(miner.run([]))'''
+miner.setDifficulty(10, True)
+miner.run([])'''

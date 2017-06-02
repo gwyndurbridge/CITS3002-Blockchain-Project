@@ -3,15 +3,8 @@ import transactionMaker as tm
 import minerUtil as ut
 
 random.seed()
-defaultDifficulty = 35
-useDefaultDifficulty = False
 
-def setDefaults(diff, use):
-    global defaultDifficulty, useDefaultDifficulty
-    defaultDifficulty = diff
-    useDefaultDifficulty = use
-
-def calculateDifficulty():
+def calculateDifficulty(defaultDifficulty):
     with open('json/minerBlockchain.json', 'r+') as blockchainFile:
         blockchain = blockchainFile.read()
         #return default if its the first one
@@ -19,16 +12,11 @@ def calculateDifficulty():
             return defaultDifficulty
         blockchain = json.loads(blockchain)
 
-        average = 0
-        #find average time taken
-        for i in range(1,len(blockchain)):
-            #add up time between release of blocks.
-            #skips first block because there's no previous reference
-            average += blockchain[i]['header']['timeStamp'] - blockchain[i-1]['header']['timeStamp']
-        average = average/len(blockchain)
+        #find time bewteen last two blocks
+        timeDiff = blockchain[-1]['header']['timeStamp'] - blockchain[-2]['header']['timeStamp']
 
         #if average is more than 2 minutes return previous block difficulty - 2
-        if average > 120:
+        if timeDiff > 120:
             return blockchain[-1]['header']['difficultyTarget'] - 2
         #if average is less than 2 minutes return previous block difficulty + 2
         return  blockchain[-1]['header']['difficultyTarget'] + 2
@@ -59,6 +47,9 @@ def generateBlockBody(transactions):
         elif tm.checkSign(transaction):
             digest = ut.hashInput(transaction)
             dict[digest] = transaction
+        else:
+            #send nack
+            pass
 
     return dict
 
@@ -107,7 +98,7 @@ def generateNonce(header):
             else:
                 break
     #add time taken
-    #processingTime = time.time() - timer
+    print("\n\nTime taken: ", time.time() - timer)
     #header['processingTime'] = processingTime
     return header
 

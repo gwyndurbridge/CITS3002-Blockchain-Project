@@ -3,6 +3,7 @@ import miner
 import transactionMaker,json, time
 import os
 from shutil import copyfile
+import minerUtil as mu
 
 class Wallet:
 	def __init__(self,givenName):
@@ -29,7 +30,7 @@ class Wallet:
 
 	def generateTransaction(self,receiver,value,payment,change):
 		#will use client.py to send transaction
-		if value <= self.numAvailableFunds:
+		if value <= self.numAvailableFunds 	:
 			transactionDump = transactionMaker.generateTransaction(self.name,receiver,value,payment,change)
 			transactionHash = minerUtil.hashInput(transactionDump)
 			transactionLoss = value - change
@@ -71,6 +72,10 @@ class Wallet:
 
 	# takes blockchain json, updates balances, pending transactions and local blockchain file
 	def update(self, newBlockchain):
+		if self.name == 'miner':
+			self.loadBlockchain()
+			return
+
 		# Create blockchain file if it doesnt already exist
 		with open('json/'+self.name+'Blockchain.json', 'a') as temp:
 			pass
@@ -96,14 +101,19 @@ class Wallet:
 				if len(newBlockchainOpen) < len(oldBlockchainOpen):
 					raise Exception('receiving older blockchain - reject')
 
-				#make sure all blocks are valid
-				for block in newBlockchainOpen:
+				for i,block in enumerate(newBlockchainOpen):
 					blockHeader = block['header']
-
 					#if the block is not valid then dont update
 					if not miner.checkNonce(blockHeader):
 						print("blockchain received not valid")
 						return -1
+					#check prevBlockHash matches hash of previous
+					#the first block doesn't have a previous block hash so skip it
+					if i > 0:
+						prevBlockStr = json.dumps(newBlockchainOpen[i-1])
+						if mu.hashInput(prevBlockStr) != blockHeader['prevBlockHash']:
+							print("prevBlockHash does not match hash of previous block")
+							return -1
 
 				numBlocksMissing = len(newBlockchainOpen) - len(oldBlockchainOpen)
 
@@ -120,6 +130,7 @@ class Wallet:
 						if transaction['sender'] == None or transactionMaker.checkSign(blockBody[key]):
 							if key in pendingKeys:
 								# if you are the sender pay 'value' and regain 'change' and move it from pending to past
+								print(self.name,"'s transaction verified on blockchain")
 								actualBalanceChange += transaction['change'] - transaction['value']
 								self.pendingTrans.pop(key)
 							elif transaction['sender'] == self.name:
@@ -127,6 +138,7 @@ class Wallet:
 								raise Exception('found unexpected payment')
 							elif transaction['receiver'] == self.name:
 								# if you are the receiver gain payment
+								print(self.name, " received ", transaction['payment'])
 								actualBalanceChange += transaction['payment']
 								availableFundsChange += transaction['payment']
 
@@ -148,25 +160,43 @@ class Wallet:
 		# if it was not in there return 0 so client knows theres nothing to resend
 		return 0
 
-	def test(self):
-		print('test')
-		print("availablefunds: ", self.numAvailableFunds, "  actualBalance: ", self.numActualBalance)
-		mineman = miner.Miner()
-		mineman.setDifficulty(10, True)
-		mineman.run([])
-
-		copyfile("json/minerBlockchain.json", 'json/'+self.name+'Blockchain.json')
-
-		t1 = self.generateTransaction('testio',20,15,3)
-		print("availablefunds: ", self.numAvailableFunds, "  actualBalance: ", self.numActualBalance)
-
-		if t1 != -1:
-			mineman.run([t1])
-
+	def updateToMinerBlockchain(self):
 		with open('json/minerBlockchain.json', 'r') as newchain:
 			newchainOpen = newchain.read()
 			self.update(newchainOpen)
 
-		print("availablefunds: ", self.numAvailableFunds, "  actualBalance: ", self.numActualBalance)
-#andy = Wallet('andy')
-#andy.test()
+	# test sending money. Its only stored on the miners blockchain
+	def testSend(self, to, val, pay, cha):
+		mineman = miner.Miner()
+		t1 = self.generateTransaction(to, val, pay, cha)
+		if t1 != -1:
+			mineman.run([t1])
+
+	def giveMinerMoney(self):
+		mineman = miner.Miner()
+		mineman.run([])
+
+	def showMoney(self):
+		print(self.name, " bal, funds: ", self.numActualBalance, self.numAvailableFunds)
+
+al = Wallet('alice')
+an = Wallet('andy')
+mi = Wallet('miner')
+
+al.showMoney()
+an.showMoney()
+mi.showMoney()
+
+mi.giveMinerMoney()
+mi.loadBlockchain()
+mi.showMoney()
+
+mi.testSend('andy',40,40,0)
+an.updateToMinerBlockchain()
+an.showMoney()
+
+an.testSend('alice', 20,15,4)
+al.updateToMinerBlockchain()
+an.updateToMinerBlockchain()
+al.showMoney()
+an.showMoney()
