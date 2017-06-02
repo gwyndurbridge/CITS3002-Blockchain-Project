@@ -171,22 +171,3 @@ class Wallet:
 			return generateTransaction(self.pendingTrans[failedHash]['receiver'],self.pendingTrans[failedHash]['value'],self.pendingTrans[failedHash]['payment'],self.pendingTrans[failedHash]['change'])
 		# if it was not in there return 0 so client knows theres nothing to resend
 		return 0
-
-	def updateToMinerBlockchain(self):
-		with open('json/minerBlockchain.json', 'r') as newchain:
-			newchainOpen = newchain.read()
-			self.update(newchainOpen)
-
-	# test sending money. Its only stored on the miners blockchain
-	def testSend(self, to, val, pay, cha):
-		mineman = miner.Miner()
-		t1 = self.generateTransaction(to, val, pay, cha)
-		if t1 != -1:
-			mineman.run([t1])
-
-	def giveMinerMoney(self):
-		mineman = miner.Miner()
-		mineman.run([])
-
-	def showMoney(self):
-		print(self.name, " bal, funds: ", self.numActualBalance, self.numAvailableFunds)
