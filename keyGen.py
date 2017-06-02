@@ -8,6 +8,8 @@ def main(names):
 		i = i.lower()
 		keyName = 'certs/' + i
 		if os.path.isfile(keyName+'Public.pem') or os.path.isfile(keyName+'Private.pem'):
+			if i = miner:
+				continue
 			print(i+ ' already exists, not generating key pair')
 			continue
 		else:
@@ -19,6 +21,7 @@ def main(names):
 
 if __name__ == "__main__":
 	if len(sys.argv) > 1:
-		main(sys.argv[1:])
+		sys.argv[1] = 'miner'
+		main(sys.argv)
 	else:
 		raise Exception("No names, exiting")
