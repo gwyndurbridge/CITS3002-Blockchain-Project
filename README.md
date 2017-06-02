@@ -28,6 +28,13 @@
 			- A `/json` folder is also formed. If persistancy is not desired, delete the contents after use.
 		- If any extra keys are requried, run `python3 keyGen.py [NAMES]` and follow the steps as above.
 
+# CLI
+####To use
+    - Run "python3 cli.py" for each wallet or miner instance you want to create
+        - Please only run one instance of the miner; there is no support for multiple miners
+    - Each instance will guide you through the process of instantiating the relevant files
+        - Follow the prompts
+
 # Wallet
 ####Transaction (dict with these keys)
     - 'transaction':dict
