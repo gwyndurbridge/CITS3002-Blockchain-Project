@@ -1,6 +1,9 @@
 from miner import Miner
 from Wallet import Wallet
 
+import asyncio
+import ssl
+
 class Client:
     def __init__(self, name):
         """
@@ -73,5 +76,5 @@ class Client:
         """
         return "Successfully set difficulty to " + str(difficulty)
 
-# c = Client("alice")
+c = Client("alice")
 # print(c.set_miner_difficulty(22))

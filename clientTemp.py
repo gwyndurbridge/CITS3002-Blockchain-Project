@@ -1,9 +1,12 @@
 import asyncio
 import ssl
 
+commands = "Hi"
+
 def watch_stdin():
     msg = input()
     return msg
+
 
 
 class Client:
@@ -11,7 +14,7 @@ class Client:
     writer = None
     sockname = None
 
-    def __init__(self, host='localhost', port=4455):
+    def __init__(self, host='localhost', port=9696):
         self.host = host
         self.port = port
 
@@ -39,39 +42,55 @@ class Client:
                 mainloop.call_soon_threadsafe(self.send_msg, input_message)
 
     @asyncio.coroutine
-    def connect(self):
-        print('Connecting...')
-        try:
-            sc = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile='selfsigned.cert')
-            reader, writer = yield from asyncio.open_connection(self.host, self.port, ssl=sc)
+    def register_name(self):
+        mainloop = asyncio.get_event_loop()
+        mainloop.call_soon_threadsafe(self.send_msg, "alice")
 
-            # reader, writer = yield from asyncio.open_connection(self.host, self.port)
+    def message_received(self, msg):
+        print("RECEIVED:",msg)
+
+    @asyncio.coroutine
+    def connect(self):
+        try:
+            sc = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile='certs/selfsigned.cert')
+            reader, writer = yield from asyncio.open_connection(self.host, self.port, ssl=sc)
+            asyncio.async(self.register_name())
+
             asyncio.async(self.create_input())
+
             self.reader = reader
             self.writer = writer
             self.sockname = writer.get_extra_info('sockname')
             while not reader.at_eof():
                 msg = yield from reader.readline()
                 if msg:
-                    print('{}'.format(msg.decode().strip()))
-            print('The server closed the connection, press <enter> to exit.')
+                    decoded = '{}'.format(msg.decode().strip())
+                    self.message_received(decoded)
+            print('ERROR: Server disconnected')
             self.writer = None
         except ConnectionRefusedError as e:
             print('Connection refused: {}'.format(e))
             self.close()
+        
+
 
 
 def main():
     loop = asyncio.get_event_loop()
     client = Client()
+    print("1")
     asyncio.async(asyncio.async(client.connect()))
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        # Raising and going through a keyboard interrupt will not interrupt the Input
-        # So, do not stop using ctrl-c, the program will deadlock waiting for watch_stdin()
-        print('Got keyboard interrupt <ctrl-C>, please send "close()" to exit.')
-        loop.run_forever()
+    print("2")
+    loop.run_forever()
+
+    print("3")
+    # try:
+    #     loop.run_forever()
+    # except KeyboardInterrupt:
+    #     # Raising and going through a keyboard interrupt will not interrupt the Input
+    #     # So, do not stop using ctrl-c, the program will deadlock waiting for watch_stdin()
+    #     print('Got keyboard interrupt <ctrl-C>, please send "close()" to exit.')
+    #     loop.run_forever()
     loop.close()
 
 

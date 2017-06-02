@@ -12,6 +12,7 @@ with common name being the host (localhost is default)
 
 import asyncio
 import ssl
+import json
 
 class MyServer:
 
@@ -28,6 +29,14 @@ class MyServer:
 
         print("Starting '" + self.server_name + "' on", self.server.sockets[0].getsockname())
 
+
+    def wrap_message(self, sender, message):
+        wrapped = {
+            'sender':sender,
+            'message':message
+        }
+        return json.dumps(wrapped).encode()
+
     def broadcast(self, message):
         """
         Broadcast 'message' to all connected users
@@ -38,15 +47,14 @@ class MyServer:
     @asyncio.coroutine
     def prompt_username(self, reader, writer):
         while True:
-            writer.write("Enter username: ".encode("utf-8"))
-            data = (yield from reader.readline()).decode("utf-8")
+            data = (yield from reader.readline()).decode()
             if not data:
                 return None
             username = data.strip()
             if username and username not in self.connections:
                 self.connections[username] = (reader, writer)
                 return username
-            writer.write("Sorry, that username is taken.\n".encode("utf-8"))
+            writer.write("ERROR: Username already taken.\n".encode("utf-8"))
 
     @asyncio.coroutine
     def handle_connection(self, username, reader):
@@ -59,24 +67,23 @@ class MyServer:
 
     @asyncio.coroutine
     def accept_connection(self, reader, writer):
-        writer.write(("Welcome to " + self.server_name + "\n").encode("utf-8"))
+        writer.write(self.wrap_message("Miner", "Successfully connected to '" + self.server_name + "'"))
+        writer.write("\n".encode())
         username = (yield from self.prompt_username(reader, writer))
         if username is not None:
-            self.broadcast("User %r has joined the room" % (username,))
+            print("-> User %r has connected" % (username))
             yield from self.handle_connection(username, reader)
-            self.broadcast("User %r has left the room" % (username,))
+            print("-> User %r has disconnected" % (username))
         yield from writer.drain()
 
 
 def main():
-
     loop = asyncio.get_event_loop()
-    server = MyServer("Miner Server", 4455, loop)
+    server = MyServer("Miner Server", 9696, loop)
     try:
         loop.run_forever()
     finally:
         loop.close()
-
 
 if __name__ == "__main__":
     main()
