@@ -31,9 +31,11 @@ lookup ansi code for colouring print() functions
 make sure class/object stuff is working in the cli
 '''
 
+from client import Client
 
 def minerCLI(init):
     # act = Miner(init)
+    act = Client(init, False)
     while True:
         print("Available Functions: ")
         print("\x1b[%sm %19s \x1b[0m" % (green, 'help;'))
@@ -119,6 +121,14 @@ def helpWallet():
         cont = input("  press any key to continue: ")
 
 def walletCLI(init):
+
+    def callback(msg):
+        print(msg)
+
+    act = Client("alice", callback)
+
+    act.callbacl = callback
+
     # act = Wallet(init)
     while True:
         print("Available Functions: ")

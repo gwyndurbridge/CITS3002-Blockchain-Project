@@ -2,13 +2,13 @@ import asyncio
 import ssl
 
 class Client:
-    def __init__(self, name, handleThing):
+    def __init__(self, name, callback):
         self.name = name
     
-    self.handleThing = handleThing
+    self.callback = callback
 
     def test:
-        self.handleThing("send me back")
+        self.callback("send me back")
 
 # balance 
 # send coins (name, amount to send, change)

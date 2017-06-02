@@ -1,15 +1,32 @@
+from miner import Miner
+from Wallet import Wallet
+
 class Client:
-    def __init__(self, name, is_miner):
+    def __init__(self, name):
         """
         name: (string) wallet name
-        is_miner: (boolean) is client for miner
         """
         self.name = name
-        self.is_miner = is_miner
+
+        print("init")
+        #Empty wallet and miner objects
+        self.wallet = None
+        self.miner = None
+
+        if name == "miner":
+            #starting as miner
+            self.init_miner()
+        else:
+            #startign as miner
+            self.init_wallet()
 
     """
     Wallet related functions
     """
+
+    def init_wallet(self):
+        self.wallet = Wallet(self.name)
+        self.wallet.test()
 
     def check_balance(self):
         """
@@ -33,6 +50,9 @@ class Client:
     Miner related functions
     """
 
+    def init_miner(self):
+        return
+
     def start_miner(self):
         """
         Returns (string) message to print in CLI
@@ -51,5 +71,5 @@ class Client:
         """
         return "Successfully set difficulty to " + str(difficulty)
 
-c = Client("alice", False)
-print(c.set_miner_difficulty(22))
+# c = Client("alice")
+# print(c.set_miner_difficulty(22))
