@@ -7,6 +7,7 @@ http://www.andy-pearce.com/blog/posts/2016/Jul/the-state-of-python-coroutines-as
 To create certificates:
 
 openssl req -x509 -newkey rsa:2048 -keyout selfsigned.key -nodes -out selfsigned.cert -sha256 -days 1000
+with common name being the host (localhost is default)
 """
 
 import asyncio
