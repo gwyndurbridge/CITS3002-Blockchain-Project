@@ -117,7 +117,8 @@ def walletCLI(init, fname):
             for name in fname:
                 if name != init or name != 'miner':
                     print("\x1b[%sm name | %10s \x1b[0m" % (blue, name))
-            recipient = input("Please enter the recipient: ").lower()
+            print("This is case-sensitive")
+            recipient = input("Please enter the recipient: ")
             if recipient.strip() == 'break' or recipient.strip() == '':
                 continue
             """This loop ensures that you are not entering an invalid name"""
@@ -125,7 +126,8 @@ def walletCLI(init, fname):
                 for name in fname:
                     if name != init:
                         print("\x1b[%smname: %s\x1b[0m" % (blue, name))
-                recipient = input("Please enter one of the names listed above for the recipient: ").lower()
+                print("This is case-sensitive")
+                recipient = input("Please enter one of the names listed above for the recipient: ")
                 if recipient.strip() == 'break' or recipient.strip() == '':
                     break
             if recipient.strip() == 'break' or recipient.strip() == '':
@@ -214,9 +216,10 @@ def main():
                         f += a
             for name in f:
                 print("\x1b[%sm name | %10s \x1b[0m" % (blue, name))
-            init = input("Who are you signing in as? ").lower()
+            print("This is case-sensitive")
+            init = input("Who are you signing in as? ")
             while init not in f:
-                init = input("Please choose one of the names above: ").lower()
+                init = input("Please choose one of the names above: ")
             print("At most points in this program you may input 'whoami' to find out who you are signed in as.\n")
             print("\n%s\n" % '--------------------')
             walletCLI(init, f)
