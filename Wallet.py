@@ -10,7 +10,7 @@ import transactionMaker
 class Wallet:
     def __init__(self, givenName):
         self.name = givenName
-        self.pendingTrans = {}  # should be in the form hash:value
+        self.pendingTrans = {}  # should be in the form hash:transactionlist
         self.numAvailableFunds = 0
         self.numActualBalance = 0
         self.readPending()
@@ -35,7 +35,7 @@ class Wallet:
             transactionDump = transactionMaker.generateTransaction(self.name, receiver, value, payment, change)
             transactionHash = minerUtil.hashInput(transactionDump)
             transactionLoss = value - change
-            self.pendingTrans[transactionHash] = transactionLoss
+            self.pendingTrans[transactionHash] = {'reciver':receiver,'value':value,'payment':payment,'change':change}
             self.numAvailableFunds -= transactionLoss
             return transactionDump
         else:
@@ -139,16 +139,15 @@ class Wallet:
                 blockchainFile.write(newBlockchain)
 
     # returns transaction json corresponding to the hash of the failed
-    def transFailiure(self, failedHash):
+    def transFailiure(self,name, failedHash):
         # make list of hashes in current pending transaction dict
-        transactionKeys = []
-        for key in self.pendingTrans:
-            transactionKeys.append(key)
+        transactionKeys = list(pendingTrans.keys())
         # if the failed transaction was pending for this wallet, return it o it can resend
         if failedHash in transactionKeys:
-            return self.pendingTrans[failedHash]
-        # if it was not in there return 0 so client knows theres nothing to resend
-        return 0
+            return generateTransaction(self.pendingTrans[failedHash].reciever,self.pendingTrans[failedHash].value,self.pendingTrans[failedHash].payment,self.pendingTrans[failedHash].change)
+		else:
+			# if it was not in there return -1 so client knows theres nothing to resend
+        	return -1
 
     def test(self):
         print('test')
