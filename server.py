@@ -1,120 +1,82 @@
-import socket, ssl, select
-import printStyle as ps
+"""
+Inspired by:
+http://www.andy-pearce.com/blog/posts/2016/Jul/the-state-of-python-coroutines-asyncio-callbacks-vs-coroutines/
+"""
 
-# Dictionary of all sock connections
-# Key: Public Key
-# Object: Socket object
-socks = {}
-poll = select.poll()
+"""
+To create certificates:
 
-# http://stackoverflow.com/questions/17539859/how-to-create-multi-server-sockets-on-one-client-in-python
+openssl req -x509 -newkey rsa:2048 -keyout selfsigned.key -nodes -out selfsigned.cert -sha256 -days 1000
+with common name being the host (localhost is default)
+"""
 
-# def startMultipleSevers():
-#     sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     socks[sock1.fileno()] = sock1
-#     poll = select.poll()
-#     for sock in socks:
-#         poll.register(sock)
-#     while 1:
-#         fd, event = poll.poll() # Optional timeout parameter in seconds
-#         sock = socks[fd]
-#         sock.recv(1024) # Do stuff
+import asyncio
+import ssl
 
+class MyServer:
 
-# def startServerOLD():
-#     bindsocket = socket.socket()
-#     bindsocket.bind(('', 5009))
-#     bindsocket.listen(5) # (backlog) specifies the number of unaccepted connections that the system will allow before refusing new connections
+    def __init__(self, server_name, port, loop):
+        self.server_name = server_name
+        self.connections = {}
 
-#     print("Sock fileno: ", bindsocket.fileno())
-#     print("Starting server")
-#     print("Host address: " + socket.gethostname())
-#     # print("Sock address: " + bindsocket.getsockname()[0])
+        socket_connection = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        socket_connection.load_cert_chain('certs/selfsigned.cert', 'certs/selfsigned.key')
 
-#     def do_something(connstream, data):
-#         print("do_something:", data)
-#         return False
+        coro = asyncio.start_server(
+            self.accept_connection, 'localhost', port, ssl=socket_connection, loop=loop)
+        self.server = loop.run_until_complete(coro)
 
-#     def deal_with_client(connstream):
-#         data = connstream.read()
-#         while data:
-#             if not do_something(connstream, data):
-#                 break
-#             data = connstream.read()
+        print("Starting '" + self.server_name + "' on", self.server.sockets[0].getsockname())
 
-#     while True:
-#         newsocket, fromaddr = bindsocket.accept()
-#         connstream = ssl.wrap_socket(newsocket,
-#                                     server_side=True,
-#                                     certfile="cert.pem")
-#         try:
-#             deal_with_client(connstream)
-#         finally:
-#             connstream.shutdown(socket.SHUT_RDWR)
-#             connstream.close()
+    def broadcast(self, message):
+        """
+        Broadcast 'message' to all connected users
+        """
+        for reader, writer in self.connections.values():
+            writer.write((message + "\n").encode("utf-8"))
 
-def sendTo(someone):
-    return
+    @asyncio.coroutine
+    def prompt_username(self, reader, writer):
+        while True:
+            writer.write("Enter username: ".encode("utf-8"))
+            data = (yield from reader.readline()).decode("utf-8")
+            if not data:
+                return None
+            username = data.strip()
+            if username and username not in self.connections:
+                self.connections[username] = (reader, writer)
+                return username
+            writer.write("Sorry, that username is taken.\n".encode("utf-8"))
 
-def sendToAll():
-    return
+    @asyncio.coroutine
+    def handle_connection(self, username, reader):
+        while True:
+            data = (yield from reader.readline()).decode("utf-8")
+            if not data:
+                del self.connections[username]
+                return None
+            self.broadcast(username + ": " + data.strip())
 
-def addSocket(port):
-    print("Adding socket to port: ", port)
-    sock = socket.socket()
-    sock.bind(('',port))
-    sock.listen(5)
+    @asyncio.coroutine
+    def accept_connection(self, reader, writer):
+        writer.write(("Welcome to " + self.server_name + "\n").encode("utf-8"))
+        username = (yield from self.prompt_username(reader, writer))
+        if username is not None:
+            self.broadcast("User %r has joined the room" % (username,))
+            yield from self.handle_connection(username, reader)
+            self.broadcast("User %r has left the room" % (username,))
+        yield from writer.drain()
 
-    socks[sock.fileno()] = sock
-    # poll = select.poll()
-    poll.register(sock)
-    print("socket added?")
-
-def startServer():
-    print("Starting server...")
-
-    def do_something(connstream, data):
-        print("do_something:", data)
-        return False
-
-    def deal_with_client(connstream):
-        data = connstream.read()
-        while data:
-            if not do_something(connstream, data):
-                break
-            data = connstream.read()
-    
-    print("did i get here?")
-
-
-
-    while True:
-        print("hi")
-        #fd, event = poll.poll() # Optional timeout parameter in seconds
-        fd, event = poll.poll()[0]
-        print("fd: ", fd)
-        sock = socks[fd]
-        
-        newsocket, fromaddr = sock.accept()
-        # stuff = sock.recv(1024) # Do stuff
-        # print("stuff?: ", stuff)
-        connstream = ssl.wrap_socket(sock,server_side=True,certfile="cert.pem")
-        try:
-            print("dealing with stream")
-            deal_with_client(connstream)
-        finally:
-            print("finally of try reached")
-            # connstream.shutdown(socket.SHUT_RDWR)
-            # connstream.close()
 
 def main():
-    # Welcome message
-    print("\n" + ps.moneyBag + ps.bold + ps.purple + "  CITS3002 SERVER " + ps.reset + ps.moneyBag + "\n")
-    
-    # startServer()
 
-    addSocket(9999)
-    startServer()
+    loop = asyncio.get_event_loop()
+    server = MyServer("Miner Server", 4455, loop)
+    try:
+        loop.run_forever()
+    finally:
+        loop.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

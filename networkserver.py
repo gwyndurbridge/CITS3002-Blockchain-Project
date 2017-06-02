@@ -20,7 +20,7 @@ class MyServer:
         self.connections = {}
 
         socket_connection = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        socket_connection.load_cert_chain('selfsigned.cert', 'selfsigned.key')
+        socket_connection.load_cert_chain('/certs/selfsigned.cert', '/certs/selfsigned.key')
 
         coro = asyncio.start_server(
             self.accept_connection, 'localhost', port, ssl=socket_connection, loop=loop)
