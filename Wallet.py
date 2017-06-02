@@ -96,9 +96,9 @@ class Wallet:
 			oldBlockchain = blockchainFile.read()
 			# if the chain is empty give exception
 			if oldBlockchain == '' or oldBlockchain == '\n':
-				return 'no blocks in old chain'
+				raise Exception('no blocks in old chain')
 			elif newBlockchain == '' or newBlockchain == '\n':
-				return 'no blocks in new chain'
+				raise Exception('no blocks in new chain')
 			else:
 				# if blockchains are not empty
 				oldBlockchainOpen = json.loads(oldBlockchain)
@@ -106,7 +106,7 @@ class Wallet:
 
 				# if received blockchain is shorter than the current one, reject it
 				if len(newBlockchainOpen) < len(oldBlockchainOpen):
-					return 'receiving older blockchain - reject'
+					raise Exception('receiving older blockchain - reject')
 
 				for i,block in enumerate(newBlockchainOpen):
 					blockHeader = block['header']
@@ -152,7 +152,7 @@ class Wallet:
 								availableFundsChange += transaction['payment']
 							elif transaction['sender'] == self.name:
 								# if you are a sender but you dont remember sending it check past transactions. Future work do something about this
-								return 'found unexpected payment'
+								raise Exception('found unexpected payment')
 
 				self.numActualBalance += actualBalanceChange
 				self.numAvailableFunds += availableFundsChange
@@ -190,3 +190,32 @@ class Wallet:
 
 	def showMoney(self):
 		print(self.name, " bal, funds: ", self.numActualBalance, self.numAvailableFunds)
+
+al = Wallet('alice')
+an = Wallet('andy')
+mi = Wallet('miner')
+
+al.showMoney()
+an.showMoney()
+mi.showMoney()
+print('miner to itself')
+mi.giveMinerMoney()
+mi.loadBlockchain()
+mi.showMoney()
+print('miner to andy')
+mi.testSend('andy',40,40,0)
+print('andy updating bChain')
+an.updateToMinerBlockchain()
+an.showMoney()
+print('andy to alice')
+an.testSend('alice', 20,15,4)
+print('alice updating')
+al.updateToMinerBlockchain()
+print('andy updating')
+an.updateToMinerBlockchain()
+al.showMoney()
+an.showMoney()
+
+al.end()
+an.end()
+mi.end()
