@@ -1,49 +1,77 @@
-import socket, ssl, pprint
-import printStyle as ps
+from miner import Miner
+from Wallet import Wallet
 
-def createSocket(host, port):
-    print("Creating socket with: " + host + ":", port)
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ssl_sock = ssl.wrap_socket(s,ca_certs="cert.pem",cert_reqs=ssl.CERT_REQUIRED)
-    ssl_sock.connect((host, port))
+class Client:
+    def __init__(self, name):
+        """
+        name: (string) wallet name
+        """
+        self.name = name
 
-    print(repr(ssl_sock.getpeername()))
-    print(ssl_sock.cipher())
-    print(pprint.pformat(ssl_sock.getpeercert()))
+        print("init")
+        #Empty wallet and miner objects
+        self.wallet = None
+        self.miner = None
 
-    ssl_sock.write("Test Message!".encode())
+        if name == "miner":
+            #starting as miner
+            self.init_miner()
+        else:
+            #startign as miner
+            self.init_wallet()
 
-    if False: # from the Python 2.7.3 docs
-        # Set a simple HTTP request -- use httplib in actual code.
-        ssl_sock.write("""GET / HTTP/1.0\r
-        Host: www.verisign.com\n\n""")
+    """
+    Wallet related functions
+    """
 
-        # Read a chunk of data.  Will not necessarily
-        # read all the data returned by the server.
-        data = ssl_sock.read()
+    def init_wallet(self):
+        self.wallet = Wallet(self.name)
+        self.wallet.test()
 
-        # note that closing the SSLSocket will also close the underlying socket
-        ssl_sock.close()
+    def check_balance(self):
+        """
+        total, pending
+        """
+        self.wallet.
+        return (50,20)
 
-def send(data):
-    print("Attempting to send...")
+    def send_transaction(self, receiver, value, payment, change):
+        """
+        reciever: (string) name of receiver
+        value: (number) total amount to send from wallet
+        payment: (number) how much the receiver recieves
+        change: (number) how much the sender recieves
 
-def main():
-    # Welcome message
-    print("\n" + ps.moneyBag + ps.bold + ps.purple + " CITS3002 CLIENT " + ps.reset + ps.moneyBag + "\n")
-    
-    # Request the host and port number of the serverfrom the user
-    host = input("Please enter the HOST address of the server: ")
-    port = input("Please enter the PORT number you wish to use: ")
-    
-    # Use default values if no info is given
-    if len(host)==0:
-        host = "127.0.0.1" # localhost
-    if len(port) == 0:
-        port = 9999 # default port
-    
-    # Create the socket with the given user info
-    createSocket(host, port)
+        Returns (string) message to print in CLI
+        """
+        return "Success"
 
-if __name__ == '__main__':
-    main()
+
+    """
+    Miner related functions
+    """
+
+    def init_miner(self):
+        self.miner = Miner()
+        return
+
+    def start_miner(self):
+        """
+        Returns (string) message to print in CLI
+        """
+        return "Success"
+
+    def get_miner_difficulty(self):
+        """
+        Returns (Number) difficulty that miner is set to
+        """
+        return 35
+
+    def set_miner_difficulty(self, difficulty):
+        """
+        Returns (Number) difficulty that miner is set to
+        """
+        return "Successfully set difficulty to " + str(difficulty)
+
+# c = Client("alice")
+# print(c.set_miner_difficulty(22))
