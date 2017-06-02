@@ -1,4 +1,3 @@
-import json
 import os
 import re
 
@@ -17,13 +16,12 @@ testTrans = [{'sender': 'Andy', 'receiver': 'jerry', 'value': 50, 'payment': 40,
               'signature': 'u4h298h4g92'}]
 
 
-def isnum(s):
+def isfloat(s):
     try:
         float(s)
         return True
     except ValueError:
         return False
-
 
 '''
 lookup %20f for formatting print() functions
@@ -32,73 +30,49 @@ make sure class/object stuff is working in the cli
 '''
 
 
-def minerCLI(init):
-    # act = Miner(init)
+def helpMiner():
+    cont = False
+    while not cont:
+        print("-===HELP===-")
+        print("	testTransaction:- create and process a transaction")
+        print("	preBuiltTrans:- process a pre-made transaction")
+        print("	exit will return you to the Miner/Wallet selection")
+        cont = input("  press any key to continue: ")
+
+
+def minerCLI():
+    act = Client('miner')
     while True:
         print("Available Functions: ")
-        print("\x1b[%sm %19s \x1b[0m" % (green, 'help;'))
-        print("\x1b[%sm %19s \x1b[0m" % (green, 'whoami'))
-        print("\x1b[%sm %19s \x1b[0m" % (orange, 'testTransaction;'))
-        print("\x1b[%sm %19s \x1b[0m" % (orange, 'preBuiltTrans;'))
-        print("\x1b[%sm %19s \x1b[0m" % (purple, 'run;'))
-        print("\x1b[%sm %19s \x1b[0m" % (red, 'exit;'))
+        print("1. \x1b[%sm %19s \x1b[0m" % (green, 'help;'))
+        print("2. \x1b[%sm %19s \x1b[0m" % (green, 'whoami'))
+        print("3. \x1b[%sm %19s \x1b[0m" % (purple, 'getDifficulty;'))
+        print("4. \x1b[%sm %19s \x1b[0m" % (orange, 'setDifficulty;'))
+        print("5. \x1b[%sm %19s \x1b[0m" % (red, 'exit;'))
         var = input("Please choose from the above functions: ")
-        if var == "help":
-            cont = "N"
-            while cont != 'y' and cont != "Y":
-                print("-===HELP===-")
-                print("	testTransaction:- create and process a transaction")
-                print("	preBuiltTrans:- process a pre-made transaction")
-                print("	exit will return you to the Miner/Wallet selection")
-                cont = input("  continue? Y/N: ")
-        elif var == "preBuiltTrans":
-            transactions = []
-            for transaction in testTrans:
-                print(transaction)
-                transactions.append(json.dumps(transaction))
-                # act.run(transactions)
-        elif var == "testTransaction":
-            print("Known names: ")
-            f = []
-            for (dirpath, dirnames, filenames) in os.walk(os.getcwd()):
-                print("%s" % os.getcwd())
-                for filename in filenames:
-                    a = re.findall('^(\w+)Public\.pem$', filename)
-                    if not a:
-                        continue
-                    f += a
-            for name in f:
-                print("name: %s" % name)
-            sender = input("Please enter the name of the sender: ")
-            while not (sender in f):
-                for name in f:
-                    print("name: %s" % name)
-                sender = input("Please enter one of the names listed above for the sender: ")
-            recipient = input("Please enter the name of the recipient: ")
-            while not (recipient in f) & (recipient != sender):
-                for name in f:
-                    if name != sender:
-                        print("name: %s" % name)
-                recipient = input("Please enter one of the names listed above for the recipient: ")
-            inputValue = input("Please enter the amount you are putting into the transaction: ")
-            while not (isnum(inputValue)) or float(inputValue) <= 0:
-                inputValue = input(
-                    "Please enter a numerical amount, greater than 0 that you are putting into the transaction: ")
-            outputValue = input("Please enter the amount you are paying %s: " % recipient)
-            while not (isnum(outputValue)) or (outputValue > inputValue) or float(outputValue) <= 0:
-                outputValue = input(
-                    "Please enter a numerical value lower than or equal to %s but greater than 0, that you are paying to %s: " % (
-                        inputValue, recipient))
-                # act.run('stuff')
-        elif var == "run":
-            # act.run()?
-            pass
-        elif var == "whoami":
-            cont = 'n'
-            while cont != 'y' and cont != 'Y':
-                print("You are: %20s" % init)
-                cont = input("continue? Y/N: ")
-        elif var == "exit":
+        if var == "help" or var == '1':
+            helpMiner()
+        elif var == "getDifficulty" or var == '3':
+            print("Current difficulty is set at %s" % act.get_miner_difficulty())
+        elif var == "setDifficulty" or var == '4':
+            diff = act.get_miner_difficulty()
+            newdiff = input("Current Difficulty is set at %s\nPlease enter the difficulty that you want: " % diff)
+            if newdiff.strip() == 'break' or newdiff.strip() == '':
+                continue
+            while not newdiff.isdigit() or 255 < int(newdiff) < 1:
+                if not newdiff.isdigit():
+                    newdiff = input("Please enter an integer value for the difficulty that you want: ")
+                elif 255 < int(newdiff) < 1:
+                    newdiff = input("Please enter a value between 0 and 255: ")
+                if newdiff.strip() == 'break' or newdiff.strip() == '':
+                    break
+            if newdiff.strip() == 'break' or newdiff.strip() == '':
+                continue
+            if newdiff != diff:
+                act.set_miner_difficulty(newdiff)
+        elif var == "whoami" or var == '2':
+            print("\x1b[%smYou are: %20s\x1b[0m" % (blue, 'miner'))
+        elif var == "exit" or var == '5' or var.strip() == 'break' or var.strip() == '':
             break
         else:
             print("Please enter either 'help', 'testTransaction', 'preBuiltTransaction' or 'exit'")
@@ -120,7 +94,7 @@ def helpWallet():
 
 
 def walletCLI(init, fname):
-    act = Client(init, False)
+    act = Client(init)
     while True:
         print("Available Functions: ")
         print("1. \x1b[%sm %17s \x1b[0m" % (green, 'help;'))
@@ -141,8 +115,8 @@ def walletCLI(init, fname):
         elif var == "sendCoins" or var == "4":
             print("Collecting relevant information")
             for name in fname:
-                if name != init:
-                    print("\x1b[%sm name | %s \x1b[0m" % (blue, name))
+                if name != init or name != 'miner':
+                    print("\x1b[%sm name | %10s \x1b[0m" % (blue, name))
             recipient = input("Please enter the recipient: ")
             if recipient.strip() == 'break' or recipient.strip() == '':
                 continue
@@ -160,8 +134,9 @@ def walletCLI(init, fname):
             if value.strip() == 'break' or value.strip() == '':
                 continue
             chuck, available = act.check_balance()
-            while not (isnum(value)) or float(value) <= 0 or float(value) > available:
-                if not isnum(value):
+            """This loop ensures that you are not entering an invalid value"""
+            while not (isfloat(value)) or float(value) <= 0 or float(value) > available:
+                if not isfloat(value):
                     value = input(
                         "Please enter a numerical amount: ")
                 elif float(value) <= 0:
@@ -176,8 +151,9 @@ def walletCLI(init, fname):
             payment = input("Please enter how much you are sending to %s: " % recipient)
             if payment.strip() == 'break' or payment.strip() == '':
                 continue
-            while not (isnum(payment)) or float(payment) > float(value) or float(payment) <= 0:
-                if not isnum(payment):
+            """This loop ensures that you are not entering an invalid value"""
+            while not (isfloat(payment)) or float(payment) > float(value) or float(payment) <= 0:
+                if not isfloat(payment):
                     payment = input(
                         "Please enter a numerical value that you are paying to %s: " % (
                             recipient))
@@ -194,7 +170,8 @@ def walletCLI(init, fname):
             minerFee = input("Please enter how much you are paying the miner: ")
             if minerFee.strip() == 'break' or minerFee.strip() == '':
                 continue
-            while not (isnum(minerFee)) or float(minerFee) > (float(value) - float(payment)) or float(
+            """This loop ensures that you are not entering an invalid value"""
+            while not (isfloat(minerFee)) or float(minerFee) > (float(value) - float(payment)) or float(
                     minerFee) < 0:
                 minerFee = input(
                     "Please enter a numerical value between 0 and %d, that you are paying to the miner: " % (
@@ -210,7 +187,7 @@ def walletCLI(init, fname):
             print("Success: %s\n" % act.send_transaction(recipient, value, payment, change))
         elif var == "whoami" or var == "2":
             print("\x1b[%sm You are: %20s \x1b[0m\n" % (blue, init))
-        elif var == "exit" or var == "5":
+        elif var == "exit" or var == "5" or var.strip() == 'break' or var.strip() == '':
             break
         else:
             helpWallet()
@@ -218,38 +195,38 @@ def walletCLI(init, fname):
 
 
 def main():
-    exit = 'N'
-    while exit != 'Y' and exit != 'y':
-        while True:
-            start = input(
-                "Would you like to start a \x1b[%smminer\x1b[0m or a \x1b[%smwallet\x1b[0m? " % (purple, green))
-            if start == "wallet":
-                print("Known accounts: ")
-                f = []
-                for (dirpath, dirnames, filenames) in os.walk(os.getcwd()):
-                    for filename in filenames:
-                        a = re.findall('^(\w+)Public\.pem$', filename)
-                        if not a:
-                            continue
+    print("%16s\n%15s" % ('Welcome to ', '<OURCOIN>'))
+    print("At most opportunities, entering 'break' or just spaces will break you out of the function")
+    print("Otherwise, you can enter in the (case-sensitive) function name or the functions' number\n"
+          " to enter that function")
+    while True:
+        start = input(
+            "Would you like to start a \x1b[%smminer\x1b[0m or a \x1b[%smwallet\x1b[0m? " % (purple, green))
+        if start == "wallet":
+            print("Known accounts: ")
+            f = []
+            for (dirpath, dirnames, filenames) in os.walk(os.getcwd()):
+                for filename in filenames:
+                    a = re.findall('^(\w+)Public\.pem$', filename)
+                    if not a:
+                        continue
+                    if 'miner' not in a:
                         f += a
-                for name in f:
-                    print("\x1b[%sm name | %10s \x1b[0m" % (blue, name))
-                init = input("Who are you signing in as? ")
-                while init not in f:
-                    init = input("Please choose one of the names above: ")
-                print("At most points in this program you may input 'whoami' to find out who you are signed in as.\n")
-                print("\n%s\n" % '--------------------')
-                walletCLI(init, f)
-            elif start == "miner":
-                print("\n%s\n" % '--------------------')
-                minerCLI(init)
-            elif start == "whoami":
-                print("You are: \x1b[%sm %10s \x1b[0m" % (blue, init))
-            elif start == "exit":
-                break
-            else:
-                print("Please enter either 'miner', 'wallet', 'whoami' or 'exit'")
-        exit = input("Would you like to exit the program? Y/N: ")
+            for name in f:
+                print("\x1b[%sm name | %10s \x1b[0m" % (blue, name))
+            init = input("Who are you signing in as? ")
+            while init not in f:
+                init = input("Please choose one of the names above: ")
+            print("At most points in this program you may input 'whoami' to find out who you are signed in as.\n")
+            print("\n%s\n" % '--------------------')
+            walletCLI(init, f)
+        elif start == "miner":
+            print("\n%s\n" % '--------------------')
+            minerCLI()
+        elif start == "exit":
+            exit(0)
+        else:
+            print("Please enter either 'miner', 'wallet', or 'exit'")
 
 
 if __name__ == "__main__":

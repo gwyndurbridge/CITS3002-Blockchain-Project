@@ -1,11 +1,10 @@
 class Client:
-    def __init__(self, name, is_miner):
+    def __init__(self, name):
         """
         name: (string) wallet name
         is_miner: (boolean) is client for miner
         """
         self.name = name
-        self.is_miner = is_miner
 
     """
     Wallet related functions
@@ -49,7 +48,3 @@ class Client:
         Returns (Number) difficulty that miner is set to
         """
         return "Successfully set difficulty to " + str(difficulty)
-
-
-c = Client("alice", False)
-print(c.set_miner_difficulty(22))
