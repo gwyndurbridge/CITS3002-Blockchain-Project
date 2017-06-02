@@ -3,6 +3,8 @@ import minerFunctions as mf
 import minerUtil as ut
 import transactionMaker as tm
 
+debugging = False
+
 class Miner():
     def __init__(self):
         self.defaultDifficulty = 10
@@ -47,7 +49,8 @@ def checkNonce(header):
     for i in digest:
         # add binary string representation of byte into bits string
         bits += bin(int(i, 16))[2:].zfill(8)
-    # print('header hash bits:', bits)
+    if debugging:
+        print('header hash bits:', bits)
 
     # count leading 0s
     count = 0

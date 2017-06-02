@@ -5,6 +5,8 @@ import os
 from shutil import copyfile
 import minerUtil as mu
 
+debugging = False
+
 class Wallet:
 	def __init__(self,givenName):
 		self.name = givenName
@@ -38,7 +40,8 @@ class Wallet:
 			self.numAvailableFunds -= transactionLoss
 			return transactionDump
 		else:
-			print("Not enough funds")
+			if debugging:
+				print("Not enough funds")
 			return -1
 
 	# loads blockchain from file on startup
@@ -105,14 +108,16 @@ class Wallet:
 					blockHeader = block['header']
 					#if the block is not valid then dont update
 					if not miner.checkNonce(blockHeader):
-						print("blockchain received not valid")
+						if debugging:
+							print("blockchain received not valid")
 						return -1
 					#check prevBlockHash matches hash of previous
 					#the first block doesn't have a previous block hash so skip it
 					if i > 0:
 						prevBlockStr = json.dumps(newBlockchainOpen[i-1])
 						if mu.hashInput(prevBlockStr) != blockHeader['prevBlockHash']:
-							print("prevBlockHash does not match hash of previous block")
+							if debugging:
+								print("prevBlockHash does not match hash of previous block")
 							return -1
 
 				numBlocksMissing = len(newBlockchainOpen) - len(oldBlockchainOpen)
@@ -130,7 +135,8 @@ class Wallet:
 						if transaction['sender'] == None or transactionMaker.checkSign(blockBody[key]):
 							if key in pendingKeys:
 								# if you are the sender pay 'value' and regain 'change' and move it from pending to past
-								print(self.name,"'s transaction verified on blockchain")
+								if debugging:
+									print(self.name,"'s transaction verified on blockchain")
 								actualBalanceChange += transaction['change'] - transaction['value']
 								self.pendingTrans.pop(key)
 							elif transaction['sender'] == self.name:
@@ -138,7 +144,8 @@ class Wallet:
 								raise Exception('found unexpected payment')
 							elif transaction['receiver'] == self.name:
 								# if you are the receiver gain payment
-								print(self.name, " received ", transaction['payment'])
+								if debugging:
+									print(self.name, " received ", transaction['payment'])
 								actualBalanceChange += transaction['payment']
 								availableFundsChange += transaction['payment']
 
