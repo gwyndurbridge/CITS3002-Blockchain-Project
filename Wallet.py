@@ -9,8 +9,8 @@ debugging = False
 
 class Wallet:
 	def __init__(self,givenName):
+		self.pendingTrans = dict()  #should be in the form hash:value
 		self.name = givenName
-		self.pendingTrans = {} #should be in the form hash:value
 		self.numAvailableFunds = 0
 		self.numActualBalance = 0
 		self.readPending()
@@ -22,8 +22,9 @@ class Wallet:
 	def readPending(self):
 		pendingName = 'json/'+self.name+'Pending.json'
 		if os.path.isfile(pendingName):
-			with open(pendingName,'r') as f:
-				json.load(self.pendingTrans,f)
+			with open(pendingName,'r+') as f:
+				self.pendingTrans = f.read()
+				self.pendingTrans = json.loads(self.pendingTrans)
 
 
 	def writePending(self):
@@ -35,8 +36,10 @@ class Wallet:
 		if value <= self.numAvailableFunds 	:
 			transactionDump = transactionMaker.generateTransaction(self.name,receiver,value,payment,change)
 			transactionHash = minerUtil.hashInput(transactionDump)
+			if debugging:
+				print(transactionHash)
+			self.pendingTrans[transactionHash] = {'receiver':receiver,'value':value,'payment':payment,'change':change}
 			transactionLoss = value - change
-			self.pendingTrans[transactionHash] = transactionLoss
 			self.numAvailableFunds -= transactionLoss
 			return transactionDump
 		else:
@@ -62,14 +65,15 @@ class Wallet:
 					body = block['body']
 					for key in body:
 						transaction = json.loads(body[key])['transaction']
-						if transaction['sender'] == self.name:
-							# if you are the sender lose the payment value and get change
-							actualBalanceChange += transaction['change'] - transaction['value']
-							availableFundsChange += transaction['change'] - transaction['value']
-						elif transaction['receiver'] == self.name:
+						transaction = json.loads(transaction)
+						if transaction['receiver'] == self.name:
 							# if you are the receiver gain payment
 							actualBalanceChange += transaction['payment']
 							availableFundsChange += transaction['payment']
+						elif transaction['sender'] == self.name:
+							# if you are the sender lose the payment value and get change
+							actualBalanceChange += transaction['change'] - transaction['value']
+							availableFundsChange += transaction['change'] - transaction['value']
 				self.numActualBalance += actualBalanceChange
 				self.numAvailableFunds += availableFundsChange
 
@@ -113,9 +117,10 @@ class Wallet:
 						return -1
 					#check prevBlockHash matches hash of previous
 					#the first block doesn't have a previous block hash so skip it
+					blockHeader = json.loads(block['header'])
 					if i > 0:
-						prevBlockStr = json.dumps(newBlockchainOpen[i-1])
-						if mu.hashInput(prevBlockStr) != blockHeader['prevBlockHash']:
+						prevBlock = newBlockchainOpen[i-1]
+						if mu.hashInput(json.dumps(prevBlock['header'])+json.dumps(prevBlock['body'],sort_keys=True)) != blockHeader['prevBlockHash']:
 							if debugging:
 								print("prevBlockHash does not match hash of previous block")
 							return -1
@@ -131,7 +136,7 @@ class Wallet:
 					blockBody = newBlockchainOpen[i]['body']
 					for key in blockBody:
 						# check if you're included in any transactions
-						transaction = json.loads(blockBody[key])['transaction']
+						transaction = json.loads(json.loads(blockBody[key])['transaction'])
 						if transaction['sender'] == None or transactionMaker.checkSign(blockBody[key]):
 							if key in pendingKeys:
 								# if you are the sender pay 'value' and regain 'change' and move it from pending to past
@@ -139,15 +144,15 @@ class Wallet:
 									print(self.name,"'s transaction verified on blockchain")
 								actualBalanceChange += transaction['change'] - transaction['value']
 								self.pendingTrans.pop(key)
-							elif transaction['sender'] == self.name:
-								# if you are a sender but you dont remember sending it check past transactions. Future work do something about this
-								raise Exception('found unexpected payment')
 							elif transaction['receiver'] == self.name:
 								# if you are the receiver gain payment
 								if debugging:
 									print(self.name, " received ", transaction['payment'])
 								actualBalanceChange += transaction['payment']
 								availableFundsChange += transaction['payment']
+							elif transaction['sender'] == self.name:
+								# if you are a sender but you dont remember sending it check past transactions. Future work do something about this
+								raise Exception('found unexpected payment')
 
 				self.numActualBalance += actualBalanceChange
 				self.numAvailableFunds += availableFundsChange
@@ -163,7 +168,7 @@ class Wallet:
 			transactionKeys.append(key)
 		# if the failed transaction was pending for this wallet, return it o it can resend
 		if failedHash in transactionKeys:
-			return self.pendingTrans[failedHash]
+			return generateTransaction(self.pendingTrans[failedHash]['receiver'],self.pendingTrans[failedHash]['value'],self.pendingTrans[failedHash]['payment'],self.pendingTrans[failedHash]['change'])
 		# if it was not in there return 0 so client knows theres nothing to resend
 		return 0
 
@@ -193,17 +198,24 @@ mi = Wallet('miner')
 al.showMoney()
 an.showMoney()
 mi.showMoney()
-
+print('miner to itself')
 mi.giveMinerMoney()
 mi.loadBlockchain()
 mi.showMoney()
-
+print('miner to andy')
 mi.testSend('andy',40,40,0)
+print('andy updating bChain')
 an.updateToMinerBlockchain()
 an.showMoney()
-
+print('andy to alice')
 an.testSend('alice', 20,15,4)
+print('alice updating')
 al.updateToMinerBlockchain()
+print('andy updating')
 an.updateToMinerBlockchain()
 al.showMoney()
 an.showMoney()
+
+al.end()
+an.end()
+mi.end()

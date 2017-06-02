@@ -7,9 +7,8 @@ def generateTransaction(sender,reciever,value,payment,change):
 	senderPrivate = getPrivateKey(sender)
 	transaction = {'sender':sender, 'receiver':reciever, 'value':value, 'payment': payment, 'change':change,'time':time.ctime()}
 	transactionDump = json.dumps(transaction)
-	#print(transactionDump)
 	signature = getSign(transactionDump,senderPrivate);
-	fullTransaction = {'transaction':transaction,'signature':signature}
+	fullTransaction = {'transaction':transactionDump,'signature':signature}
 	return json.dumps(fullTransaction)
 
 def getPubilicKey(name):
@@ -24,4 +23,5 @@ def getSign(message,key):
 def checkSign(transactionString):
 	transaction = json.loads(transactionString)
 	signature = transaction['signature']
-	return keyUtils.verifyMessage(json.dumps(transaction['transaction']),signature,getPubilicKey(transaction['transaction']['sender']))
+	transactionInterior = json.loads(transaction['transaction'])
+	return keyUtils.verifyMessage(transaction['transaction'],signature,getPubilicKey(transactionInterior['sender']))

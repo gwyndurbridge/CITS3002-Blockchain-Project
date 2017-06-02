@@ -18,7 +18,7 @@ def verifyMessage(message,intSignature,key):
 		rsa.verify(byteMessage,signature,key)
 		return True
 	except Exception as e:
-		print('VERFICATION FAILED - Incorrect message')
+		print('VERFICATION FAILED - Incorrect signature')
 		return False
 #Should use recievers public key to encrypt - DEPRACATED for SSL
 def encryptMessage(message,key):
