@@ -7,8 +7,9 @@ import minerUtil as ut
 import transactionMaker as tm
 
 random.seed()
+defaultDifficulty = 35
+useDefaultDifficulty = False
 
-<<<<<<< HEAD
 
 def setDefaults(diff, use):
     global defaultDifficulty, useDefaultDifficulty
@@ -17,9 +18,6 @@ def setDefaults(diff, use):
 
 
 def calculateDifficulty():
-=======
-def calculateDifficulty(defaultDifficulty):
->>>>>>> master
     with open('json/minerBlockchain.json', 'r+') as blockchainFile:
         blockchain = blockchainFile.read()
         # return default if its the first one
@@ -27,7 +25,6 @@ def calculateDifficulty(defaultDifficulty):
             return defaultDifficulty
         blockchain = json.loads(blockchain)
 
-<<<<<<< HEAD
         average = 0
         # find average time taken
         for i in range(1, len(blockchain)):
@@ -38,13 +35,6 @@ def calculateDifficulty(defaultDifficulty):
 
         # if average is more than 2 minutes return previous block difficulty - 2
         if average > 120:
-=======
-        #find time bewteen last two blocks
-        timeDiff = blockchain[-1]['header']['timeStamp'] - blockchain[-2]['header']['timeStamp']
-
-        #if average is more than 2 minutes return previous block difficulty - 2
-        if timeDiff > 120:
->>>>>>> master
             return blockchain[-1]['header']['difficultyTarget'] - 2
         # if average is less than 2 minutes return previous block difficulty + 2
         return blockchain[-1]['header']['difficultyTarget'] + 2
@@ -78,9 +68,6 @@ def generateBlockBody(transactions):
         elif tm.checkSign(transaction):
             digest = ut.hashInput(transaction)
             dict[digest] = transaction
-        else:
-            #send nack
-            pass
 
     return dict
 
@@ -131,15 +118,9 @@ def generateNonce(header):
             # if this bit isnt zero move one to next nonce
             else:
                 break
-<<<<<<< HEAD
     # add time taken
     # processingTime = time.time() - timer
     # header['processingTime'] = processingTime
-=======
-    #add time taken
-    print("\n\nTime taken: ", time.time() - timer)
-    #header['processingTime'] = processingTime
->>>>>>> master
     return header
 
 

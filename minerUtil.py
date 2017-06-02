@@ -61,12 +61,4 @@ def getLastBlockHash():
         else:
             # load the blockchain and grab the last element
             blockchain = json.loads(blockchain)
-<<<<<<< HEAD
             return hashInput(json.dumps(blockchain[-1]))
-=======
-            if len(blockchain) > 0:
-                lastBlockStr = json.dumps(blockchain[-1])
-                return hashInput(lastBlockStr)
-            else:
-                return None
->>>>>>> master
