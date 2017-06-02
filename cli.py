@@ -207,7 +207,7 @@ def main():
             f = []
             for (dirpath, dirnames, filenames) in os.walk(os.getcwd()):
                 for filename in filenames:
-                    a = re.findall('^(\w+)Public\.pem$', filename)
+                    a = re.findall('^(\w+)Private\.pem$', filename)
                     if not a:
                         continue
                     if 'miner' not in a:
